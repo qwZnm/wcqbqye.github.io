@@ -1,22 +1,55 @@
-<!DOCTYPE html>
-<html>
-<body>
+<HTML>
+<HEAD>
+  <meta charset="utf-8">
+<TITLE></TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=gb2312">
+<link rel=stylesheer href="theme.css" type="text/css">
+<script language="javascript">
 
-<h1>我的第一个谷歌地图</h1>
-
-<div id="googleMap" style="width:100%;height:400px;"></div>
-
-<script>
-function myMap() {
-var mapProp= {
-  center:new google.maps.LatLng(51.508742,-0.120850),
-  zoom:5,
-};
-var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+//用script在提交之前判断密码的正确性
+function isValid(form)
+{
+if (((form.password.value.length<3)||(form.password.value.length>8))&&(form.password.value!=""))
+{
+alert("密码必须是3-8位的字母或数字！");
+return false;
+}
+else if (form.password.value!=form.re_password.value)
+{
+alert("两次输入的密码不同！");
+return false;
+}
+else if (form.password.value=="")
+{
+alert("用户密码不能为空！");
+return false;
+}
+else return true;
 }
 </script>
+</HEAD>
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
 
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&callback=myMap"></script>
-
+<!-- 提交用户名与密码 -->
+<form method="post" action="ok_register.jsp" onSubmit="return isValid(this);">
+<table >
+<tr>
+<td align='left'><p>用 户 名：<input type="text" maxlength="60" name="user_id">
+<font color="#FF0000"> *</font></td>
+</tr>
+<tr>
+<td align='left'><p>密   码：
+<input type="password" size="8" maxlength="30" name="password">
+<font color="#FF0000"> *</font></td>
+</tr>
+<tr>
+<td align='left'><p>密码确认：<input type="password" size="8" maxlength="30" name="re_password">
+<font color="#FF0000"> *</font></td>
+</tr>
+</table>
+<br>
+<input type="submit" size="4" value="提交" class="buttonface">
+<input type="reset" size="4" value="重填" class="buttonface">
+</form>
 </body>
 </html>
