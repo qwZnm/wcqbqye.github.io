@@ -1,44 +1,47 @@
-<!doctype html>
-<html lang:"en-US">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <meta charset="utf-8">
-    <meta name="author" content="Hivason">
-    <style>
-      body {
-  background-image: url("https://s2.loli.net/2023/08/24/MVax132ZYndihyO.jpg");
-        width:400px
-        height:710px
-        background-size:cover
-      }
-          p{
-        color:pink;
-        font-family:"Microsoft Yahei";
-      }
-      a:link, a:visited, a:hover, a:active {
-        text-decoration: none; 
-        txt-decoration:underline;
-      }
-    </style>
-  </head>
-  <body>
-    <script>
-      let password = "pinp3233"
-      let num = prompt("è¯·é”®å…¥")
-      if(num!=password){
-        window.location.href='https://qwznm.github.io/wcqbqye.github.io/null.html';
-      }
-    </script>
-    <h1 style="text-align:center; color:pink;">Welcom</h1>
-    <a href="https://github.com/qwznm" target="_blank"><img src="https://s2.loli.net/2023/08/24/HKMzfqGT1t7xmaU.jpg" width="100px"></a>
-    <a href="https://m.bilibili.com/space/569865294?from=search" target="_blank"><img src="https://s2.loli.net/2023/08/24/WgMyXwqIoi2ZADG.jpg" width="100"px alt="bilibili"></a>
-    <br>
-    <pre style="color:pink;font-family:"Microsoft Yahei";> My github     My bilibili </pre>
-      <a href="./home2.html"><p style="color:pink;height:20xp;width:20xp;border: 1px solid white;background-color: white;max-width:36px;">æ¸¸æˆ</p></a>
-      <a href="./test.html"><p style="color:pink;">å¼€å‘è€…é€‰é¡¹</p></a>
-    <a href="./map.html"><p style="color:pink;">ç™»å½•æµ‹è¯•</p></a>
-    <a href="./å¾®è½¯æµè§ˆå™¨.html"><p style="color:pink;">æµè§ˆå™¨(bing)</p></a>
-    </form>
-    </body>
-    </html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>HTML5ÊµÏÖÖĞ¹úÏóÆåÓÎÏ· - Õ¾³¤ËØ²Ä</title>
+<link href="css/zzsc.css" type="text/css" rel="stylesheet" />
+</head>
+<body>
+<div class="box" id="box">
+	<div class="chess_left">
+		<canvas id="chess">¶Ô²»Æğ£¬ÄúµÄä¯ÀÀÆ÷²»Ö§³ÖHTML5£¬ÇëÉı¼¶ä¯ÀÀÆ÷ÖÁIE9¡¢firefox»òÕß¹È¸èä¯ÀÀÆ÷£¡</canvas>
+		<audio src="audio/click.wav" id="clickAudio" preload="auto"></audio>
+		<!--<audio src="audio/check.wav" id="checkAudio" preload="auto"></audio>-->
+		<audio src="audio/select.wav" id="selectAudio" preload="auto"></audio>
+		<div>
+			<div class="bn_box" id="bnBox">
+				<input type="button" name="offensivePlay" id="tyroPlay" value="ĞÂÊÖË®Æ½" />
+				<input type="button" name="offensivePlay" id="superPlay" value="ÖĞ¼¶Ë®Æ½" />
+                <input type="button" name="button" id="" value="´óÊ¦Ë®Æ½" disabled />
+				<!--
+			<input type="button" name="offensivePlay" id="offensivePlay" value="ÏÈÊÖ¿ªÊ¼" />
+			<input type="button" name="defensivePlay" id="defensivePlay" value="ºóÊÖ¿ªÊ¼" />
+			-->
+				<input type="button" name="regret" id="regretBn" value="»ÚÆå" />
+				<input type="button" name="billBn" id="billBn" value="ÆåÆ×" class="bn_box" />
+				<input type="button" name="stypeBn" id="stypeBn" value="»»·ô" />
+			</div>
+		</div>
+	</div>
+	<div class="chess_right" id="chessRight">
+		<select name="billList" id="billList">
+		</select>
+		<ol id="billBox" class="bill_box">
+		</ol>
+	</div>
+	<div id="moveInfo" class="move_info"> </div>
+</div>
+<script src="js/common.js"></script> 
+<script src="js/play.js"></script> 
+<script src="js/AI.js"></script> 
+<script src="js/bill.js"></script> 
+<script src="js/gambit.js"></script>
+<div style="text-align:center;clear:both">
+<p>ÊÊÓÃä¯ÀÀÆ÷£º360¡¢FireFox¡¢Chrome¡¢Safari¡¢Opera¡¢°ÁÓÎ¡¢ËÑ¹·¡¢ÊÀ½çÖ®´°. ²»Ö§³ÖIE8¼°ÒÔÏÂä¯ÀÀÆ÷¡£</p>
+</div>
+</body>
+</html>
