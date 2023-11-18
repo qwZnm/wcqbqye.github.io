@@ -100,13 +100,12 @@
             }
 			
 		  drawtable();
-          addfood();//在start中调用添加食物函数
- 
+          addfood();//kill the first one  
     }
  
     function addfood()
 	{
-	foodx = Math.floor(Math.random()*60)*15; //随机产生一个0-1之间的数
+	foodx = Math.floor(Math.random()*60)*15; //随机产生一个0-1之间的数pip install pygame
 	foody = Math.floor(Math.random()*40)*15;
 		
 		for (var k=0;k<snake;k++)
