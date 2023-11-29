@@ -1,1 +1,1 @@
-
+from Django import *
