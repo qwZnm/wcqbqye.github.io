@@ -11,6 +11,7 @@ let selectedQuality = 80;    // 默认 1080P
 // CORS 代理配置（用于绕过浏览器跨域限制）
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const BILI_API_BASE = 'https://api.bilibili.com';
+const BILI_PLAYURL_API = '/x/player/playurl';
 
 // ===== BV号提取 =====
 function extractBvid(input) {
@@ -44,6 +45,28 @@ async function biliFetch(apiPath) {
   });
   if (!resp.ok) throw new Error(`请求失败: ${resp.status}`);
   return resp.json();
+}
+
+// ===== 百分比进度条 =====
+function setBiliProgress(percent, text) {
+  const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+  const fill = document.getElementById('biliProgressFill');
+  const percentEl = document.getElementById('biliProgressPercent');
+  const textEl = document.getElementById('biliProgressText');
+  if (fill) fill.style.width = safePercent + '%';
+  if (percentEl) percentEl.textContent = safePercent + '%';
+  if (textEl && text) textEl.textContent = text;
+}
+
+function startBiliLoading() {
+  document.getElementById('biliLoading').style.display = 'block';
+  document.getElementById('biliResult').style.display = 'none';
+  document.getElementById('biliError').style.display = 'none';
+  setBiliProgress(0, '正在准备解析...');
+}
+
+function stopBiliLoading() {
+  document.getElementById('biliLoading').style.display = 'none';
 }
 
 // ===== 格式化数字 =====
@@ -105,12 +128,11 @@ async function biliParse() {
   }
 
   // 显示加载状态
-  document.getElementById('biliLoading').style.display = 'block';
-  document.getElementById('biliResult').style.display = 'none';
-  document.getElementById('biliError').style.display = 'none';
+  startBiliLoading();
 
   try {
     // Step 1: 获取视频信息（含 cid）
+    setBiliProgress(15, '正在获取视频基础信息...');
     const viewResp = await biliFetch(`/x/web-interface/view?bvid=${bvid}`);
 
     if (viewResp.code !== 0) {
@@ -131,9 +153,10 @@ async function biliParse() {
       pages: data.pages,
     };
 
-    // Step 2: 获取播放地址（DASH 格式）
+    // Step 2: 使用 api.bilibili.com/x/player/playurl 获取播放地址（DASH 格式）
+    setBiliProgress(55, '正在调用 api.bilibili.com/x/player/playurl...');
     const playUrlResp = await biliFetch(
-      `/x/player/playurl?bvid=${bvid}&cid=${data.cid}&qn=120&fnver=0&fnval=16&fourk=1`
+      `${BILI_PLAYURL_API}?bvid=${bvid}&cid=${data.cid}&qn=120&fnver=0&fnval=16&fourk=1`
     );
 
     if (playUrlResp.code !== 0) {
@@ -143,16 +166,20 @@ async function biliParse() {
     biliPlayUrlData = playUrlResp.data;
 
     // 渲染结果
+    setBiliProgress(82, '正在整理清晰度和下载链接...');
     renderVideoInfo();
     renderQualityList();
     renderDownloadLinks();
 
-    document.getElementById('biliLoading').style.display = 'none';
+    setBiliProgress(100, '解析完成');
+    await new Promise(resolve => setTimeout(resolve, 350));
+    stopBiliLoading();
     document.getElementById('biliResult').style.display = 'block';
     showToast('解析成功');
 
   } catch (err) {
-    document.getElementById('biliLoading').style.display = 'none';
+    setBiliProgress(100, '解析失败');
+    stopBiliLoading();
     document.getElementById('biliError').style.display = 'block';
     let errMsg = err.message || '未知错误';
     if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {

@@ -42,7 +42,13 @@
     <!-- 加载中 -->
     <div id="biliLoading" style="display:none;text-align:center;padding:40px 20px;">
       <div style="font-size:32px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
-      <p style="margin-top:10px;color:var(--text-sub);font-size:13px;">正在解析视频信息...</p>
+      <p id="biliProgressText" style="margin-top:10px;color:var(--text-sub);font-size:13px;">正在准备解析...</p>
+      <div class="bili-progress-wrap">
+        <div class="bili-progress-track">
+          <div class="bili-progress-fill" id="biliProgressFill" style="width:0%"></div>
+        </div>
+        <div class="bili-progress-percent" id="biliProgressPercent">0%</div>
+      </div>
     </div>
 
     <!-- 视频信息展示区 -->
@@ -101,11 +107,19 @@
     <div style="margin-top:30px;padding:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px;">⚙️ 技术实现</div>
       <div style="font-size:11px;color:var(--text-sub);line-height:1.8;">
-        本工具通过 Bilibili 官方 API 获取视频信息：<br>
+        本工具通过 Bilibili 官方 API 获取视频信息和播放地址：<br>
         1. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">/x/web-interface/view</code> 获取视频信息和 cid<br>
-        2. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">/x/player/playurl</code> 获取 DASH 音视频流地址<br>
+        2. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">https://api.bilibili.com/x/player/playurl</code> 获取 DASH 音视频流地址<br>
         3. 由于浏览器 CORS 限制，使用公共代理转发 API 请求<br>
         4. B站视频采用 DASH 协议，音视频分离存储为 .m4s 文件
+      </div>
+    </div>
+
+    <!-- 免责声明 -->
+    <div class="bili-disclaimer">
+      <div class="bili-disclaimer-title">免责声明</div>
+      <div class="bili-disclaimer-text">
+        视频版权归相关网站及作者所有。本工具仅用于技术学习、个人研究和合法内容备份，不提供任何视频存储、转码或二次分发服务。请勿下载、传播、商用或转载未获授权的版权内容，使用者需自行遵守相关网站规则及所在地法律法规。
       </div>
     </div>
 
@@ -151,6 +165,13 @@
 .bili-dl-label { font-size:12px;color:var(--text-sub); }
 .bili-dl-link { font-size:12px;font-weight:600;color:var(--primary);text-decoration:none;padding:4px 12px;border:1px solid var(--primary);border-radius:6px;transition:all .2s; }
 .bili-dl-link:hover { background:var(--primary);color:#fff; }
+.bili-progress-wrap { width: min(420px, 92%); margin: 18px auto 0; display: flex; align-items: center; gap: 12px; }
+.bili-progress-track { flex: 1; height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.bili-progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 999px; transition: width .35s ease; }
+.bili-progress-percent { width: 42px; text-align: right; font-size: 12px; font-weight: 700; color: var(--primary); }
+.bili-disclaimer { margin-top: 16px; padding: 14px 16px; border: 1px solid rgba(251,146,60,.35); border-radius: var(--radius); background: rgba(251,146,60,.08); }
+.bili-disclaimer-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #fb923c; }
+.bili-disclaimer-text { font-size: 11px; line-height: 1.8; color: var(--text-sub); }
 </style>
 
 <script src="js/bilibili.js"></script>
