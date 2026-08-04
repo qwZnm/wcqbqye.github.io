@@ -225,17 +225,6 @@ body {
   border: 5px solid rgba(255,255,255,.86);
   box-shadow: 0 14px 36px rgba(0,0,0,.22);
 }
-.about-bili-avatar {
-  position: absolute;
-  right: -10px;
-  bottom: 2px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 8px 20px rgba(0,0,0,.2);
-}
 .about-title {
   font-size: 34px;
   font-weight: 850;
