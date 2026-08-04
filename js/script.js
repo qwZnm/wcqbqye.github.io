@@ -5,7 +5,7 @@ const tools = [
   { icon:'📺', name:'Bilibili 视频下载', desc:'维护中 · 暂不开放', tool:'bilibili' },
   { icon:'🖼️', name:'读取图片信息', desc:'尺寸/格式 · EXIF 元数据 · GPS 信息', tool:'imginfo' },
   { icon:'🔠', name:'Base64 编解码', desc:'文本 ↔ Base64 · 文件 ↔ Base64 · UTF-8 安全', tool:'base64' },
-  { icon:'▣', name:'二维码生成', desc:'文本/网址/WiFi · Logo/渐变 · PNG/SVG', tool:'qrcode' },
+  { icon:'🌸', name:'随机二次元图片', desc:'随机头像 · 随机动漫 · 一键刷新', tool:'qrcode' },
   { icon:'🗜️', name:'图片压缩', desc:'批量压缩 · JPG/PNG/WebP/AVIF', tool:'imgcompress' },
   { icon:'📑', name:'PDF 合并', desc:'多个 PDF · 拖拽排序 · 本地处理', tool:'pdfmerge' },
   { icon:'🔐', name:'密码生成', desc:'强度评级 · 排除易混淆 · 历史记录', tool:'password' },
@@ -14,9 +14,30 @@ const tools = [
   { icon:'{}', name:'JSON 格式化', desc:'语法高亮 · 格式化/压缩 · JSONPath 查询', tool:'json' },
 ];
 
-// ===== Tool Templates（Base64/Bilibili 已移至独立页面）=====
+// ===== Tool Templates（Base64/图片信息已移至独立页面）=====
 const toolTemplates = {
-  qrcode: { icon:'▣', title:'二维码生成', subtitle:'文本/网址/WiFi · Logo/渐变 · PNG/SVG', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
+  qrcode: {
+    icon:'🌸',
+    title:'随机二次元图片',
+    subtitle:'随机二次元头像 · 随机二次元动漫 · 每次刷新都有新图片',
+    render: () => `
+      <div class="anime-random-wrap">
+        <div class="anime-random-actions">
+          <button class="arrow-btn" onclick="refreshAnimeImages()">刷新图片</button>
+          <span>图片来自随机二次元接口，加载速度取决于接口响应。</span>
+        </div>
+        <div class="anime-random-grid">
+          <div class="anime-random-card">
+            <div class="anime-random-title">随机二次元头像</div>
+            <img id="animeAvatarImg" alt="随机二次元头像">
+          </div>
+          <div class="anime-random-card">
+            <div class="anime-random-title">随机二次元动漫</div>
+            <img id="animeAutoImg" alt="随机二次元动漫">
+          </div>
+        </div>
+      </div>`
+  },
   imgcompress: { icon:'🗜️', title:'图片压缩', subtitle:'批量压缩 · JPG/PNG/WebP/AVIF', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   pdfmerge: { icon:'📑', title:'PDF 合并', subtitle:'多个 PDF · 拖拽排序 · 本地处理', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   password: { icon:'🔐', title:'密码生成', subtitle:'强度评级 · 排除易混淆 · 历史记录', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
@@ -77,6 +98,7 @@ function openTool(toolId) {
   document.getElementById('toolTitle').textContent = tpl.title;
   document.getElementById('toolSubtitle').textContent = tpl.subtitle;
   document.getElementById('toolBody').innerHTML = tpl.render();
+  if (toolId === 'qrcode') refreshAnimeImages();
   window.scrollTo(0, 0);
 }
 
@@ -164,6 +186,35 @@ function toggleTheme() {
 let toastTimer;
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2500); }
 
+// ===== Random Aword =====
+async function loadRandomAword() {
+  const el = document.getElementById('awordText');
+  if (!el) return;
+  try {
+    const res = await fetch(`https://api.sretna.cn/api/aword/auto?t=${Date.now()}`, { cache: 'no-store' });
+    const contentType = res.headers.get('content-type') || '';
+    let text = '';
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      text = data.text || data.content || data.data || data.msg || data.hitokoto || '';
+    } else {
+      text = await res.text();
+    }
+    el.textContent = String(text).trim() || '愿你今天也拥有好心情。';
+  } catch (err) {
+    el.textContent = '一言暂时加载失败，请稍后再试。';
+  }
+}
+
+// ===== Random Anime Images =====
+function refreshAnimeImages() {
+  const avatar = document.getElementById('animeAvatarImg');
+  const anime = document.getElementById('animeAutoImg');
+  const now = Date.now();
+  if (avatar) avatar.src = `https://api.sretna.cn/api/anime/tx?t=${now}`;
+  if (anime) anime.src = `https://api.sretna.cn/api/anime/auto?t=${now + 1}`;
+}
+
 // ===== Init =====
 function init() {
   const savedTheme = localStorage.getItem('toolbox_theme') || 'light';
@@ -174,6 +225,7 @@ function init() {
   const savedUser = localStorage.getItem('toolbox_user');
   if (savedUser) loginUser(savedUser);
   filterTools();
+  loadRandomAword();
 }
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); if (currentTool) goHome(); } });
