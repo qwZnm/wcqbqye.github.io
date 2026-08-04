@@ -258,6 +258,8 @@ body {
   background: var(--bg);
   padding: 18px;
   transition: all .2s;
+  display: flex;
+  flex-direction: column;
 }
 .api-card:hover {
   border-color: var(--primary);
@@ -298,8 +300,7 @@ body {
   font-size: 12px;
   line-height: 1.6;
 }
-.api-card code,
-.api-preview-code {
+.api-card code {
   display: block;
   margin: 12px 0;
   padding: 10px;
@@ -320,43 +321,29 @@ body {
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  align-self: flex-start;
+  margin-bottom: 12px;
 }
 .api-test-btn:hover { background: var(--primary-dark); }
-.api-preview {
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: var(--bg);
-  overflow: hidden;
-}
-.api-preview-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-}
-.api-preview-head span {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--text-sub);
-  font-size: 12px;
-}
-.api-preview-head strong {
-  color: var(--text);
-  font-size: 15px;
-}
 .anime-img-box {
   position: relative;
-  min-height: 420px;
+  min-height: 220px;
+  margin-top: auto;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   background: var(--border);
 }
+.anime-img-box-portrait { min-height: 320px; }
+.anime-img-box-square { min-height: 260px; }
 .anime-img-box img {
   width: 100%;
-  height: 420px;
+  height: 220px;
   display: block;
   object-fit: cover;
 }
+.anime-img-box-portrait img { height: 320px; object-position: center top; }
+.anime-img-box-square img { height: 260px; }
 .anime-img-status {
   position: absolute;
   inset: 0;
@@ -539,9 +526,10 @@ body {
   .api-hero h2 { font-size: 23px; }
   .api-stats { grid-template-columns: 1fr; }
   .api-card-grid { grid-template-columns: 1fr; }
-  .api-preview-head { align-items: flex-start; flex-direction: column; }
   .anime-img-box { min-height: 280px; }
   .anime-img-box img { height: 280px; }
+  .anime-img-box-portrait { min-height: 360px; }
+  .anime-img-box-portrait img { height: 360px; }
   .about-page { padding: 32px 14px; background-attachment: scroll; }
   .about-hero { padding: 34px 22px 24px; }
   .about-title { font-size: 28px; }

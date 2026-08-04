@@ -29,8 +29,8 @@ const toolTemplates = {
         </div>
         <div class="api-stats">
           <div><strong>4</strong><span>动漫接口</span></div>
+          <div><strong>4</strong><span>独立预览</span></div>
           <div><strong>∞</strong><span>随机生成</span></div>
-          <div><strong>1</strong><span>点击试用</span></div>
         </div>
         <div class="api-section-title">
           <span>图片 API</span>
@@ -42,43 +42,45 @@ const toolTemplates = {
             <h3>自适应二次元动漫</h3>
             <p>随机返回横屏或竖屏动漫图，先读取 JSON，再展示真实 CDN 图片。</p>
             <code>https://api.sretna.cn/api/anime/auto?type=json</code>
-            <button class="api-test-btn" onclick="testAnimeApi('auto')">试用生成</button>
+            <button class="api-test-btn" onclick="testAnimeApi('auto')">重新生成</button>
+            <div class="anime-img-box">
+              <img id="animePreviewImg_auto" alt="自适应二次元动漫" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animePreviewStatus_auto">正在加载图片...</div>
+            </div>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>电脑动漫</em></div>
             <h3>电脑端二次元动漫</h3>
             <p>二次元电脑图片，宽屏高清，适合横向预览。</p>
             <code>https://api.sretna.cn/api/anime/pc?type=json</code>
-            <button class="api-test-btn" onclick="testAnimeApi('pc')">试用生成</button>
+            <button class="api-test-btn" onclick="testAnimeApi('pc')">重新生成</button>
+            <div class="anime-img-box">
+              <img id="animePreviewImg_pc" alt="电脑端二次元动漫" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animePreviewStatus_pc">正在加载图片...</div>
+            </div>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>手机动漫</em></div>
             <h3>手机端二次元动漫</h3>
             <p>二次元手机壁纸，竖版图片，适合移动端预览。</p>
             <code>https://api.sretna.cn/api/anime/pe?type=json</code>
-            <button class="api-test-btn" onclick="testAnimeApi('pe')">试用生成</button>
+            <button class="api-test-btn" onclick="testAnimeApi('pe')">重新生成</button>
+            <div class="anime-img-box anime-img-box-portrait">
+              <img id="animePreviewImg_pe" alt="手机端二次元动漫" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animePreviewStatus_pe">正在加载图片...</div>
+            </div>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>动漫头像</em></div>
             <h3>头像端二次元动漫</h3>
             <p>随机二次元方形头像，适合作为头像素材。</p>
             <code>https://api.sretna.cn/api/anime/tx?type=json</code>
-            <button class="api-test-btn" onclick="testAnimeApi('tx')">试用生成</button>
-          </div>
-        </div>
-        <div class="api-preview">
-          <div class="api-preview-head">
-            <div>
-              <span>接口试用</span>
-              <strong id="animePreviewTitle">自适应二次元动漫</strong>
+            <button class="api-test-btn" onclick="testAnimeApi('tx')">重新生成</button>
+            <div class="anime-img-box anime-img-box-square">
+              <img id="animePreviewImg_tx" alt="头像端二次元动漫" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animePreviewStatus_tx">正在加载图片...</div>
             </div>
-            <button class="action-btn" onclick="refreshAnimeImages()">重新生成</button>
           </div>
-          <div class="anime-img-box">
-            <img id="animePreviewImg" alt="随机二次元图片" referrerpolicy="no-referrer">
-            <div class="anime-img-status" id="animePreviewStatus">正在加载图片...</div>
-          </div>
-          <code class="api-preview-code" id="animePreviewCode">https://api.sretna.cn/api/anime/auto?type=json</code>
         </div>
       </div>`
   },
@@ -142,7 +144,7 @@ function openTool(toolId) {
   document.getElementById('toolTitle').textContent = tpl.title;
   document.getElementById('toolSubtitle').textContent = tpl.subtitle;
   document.getElementById('toolBody').innerHTML = tpl.render();
-  if (toolId === 'qrcode') testAnimeApi('auto');
+  if (toolId === 'qrcode') refreshAnimeImages();
   window.scrollTo(0, 0);
 }
 
@@ -257,8 +259,6 @@ const animeApiMap = {
   pe: { title: '手机端二次元动漫', url: 'https://api.sretna.cn/api/anime/pe', displayUrl: 'https://api.sretna.cn/api/anime/pe?type=json' },
   tx: { title: '头像端二次元动漫', url: 'https://api.sretna.cn/api/anime/tx', displayUrl: 'https://api.sretna.cn/api/anime/tx?type=json' }
 };
-let currentAnimeApi = 'auto';
-
 async function loadAnimeImage(imgId, statusId, apiUrl) {
   const img = document.getElementById(imgId);
   const status = document.getElementById(statusId);
@@ -297,17 +297,13 @@ async function loadAnimeImage(imgId, statusId, apiUrl) {
 }
 
 function testAnimeApi(type) {
-  currentAnimeApi = animeApiMap[type] ? type : 'auto';
-  const item = animeApiMap[currentAnimeApi];
-  const title = document.getElementById('animePreviewTitle');
-  const code = document.getElementById('animePreviewCode');
-  if (title) title.textContent = item.title;
-  if (code) code.textContent = item.displayUrl;
-  loadAnimeImage('animePreviewImg', 'animePreviewStatus', item.url);
+  const item = animeApiMap[type];
+  if (!item) return;
+  loadAnimeImage(`animePreviewImg_${type}`, `animePreviewStatus_${type}`, item.url);
 }
 
 function refreshAnimeImages() {
-  testAnimeApi(currentAnimeApi);
+  Object.keys(animeApiMap).forEach(type => testAnimeApi(type));
 }
 
 // ===== Init =====
