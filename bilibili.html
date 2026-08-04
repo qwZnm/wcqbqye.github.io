@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilibili 视频下载 · 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <a class="back-btn" id="backBtn" href="index.html" style="display:flex;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    返回首页
+  </a>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>工具箱</span>
+  </div>
+  <div class="header-actions" style="margin-left:auto;">
+    <button class="icon-btn" onclick="toggleTheme()" title="切换主题"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+    <button class="login-btn" id="loginBtn" onclick="openModal()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录</button>
+    <div class="user-menu" id="userMenu"><div class="user-avatar" id="userAvatar">U</div><span class="user-name" id="userName">用户</span><button class="logout-btn" onclick="logout()">退出</button></div>
+  </div>
+</header>
+
+<!-- Tool View -->
+<div id="toolView" style="display:block;">
+  <div class="tool-header">
+    <div class="tool-title"><div class="tool-title-icon">📺</div><span>Bilibili 视频下载</span></div>
+    <div class="tool-subtitle">输入 BV 号或视频链接 · 解析视频信息 · 多清晰度下载 · 仅供学习研究使用</div>
+  </div>
+  <div class="tool-body">
+
+    <!-- 输入区 -->
+    <div class="bili-input-area" style="display:flex;gap:10px;margin-bottom:20px;">
+      <input type="text" id="biliInput" class="text-input" style="min-height:42px;flex:1;font-family:inherit;" placeholder="输入 BV 号或 Bilibili 视频链接，如 BV1xx411c7mD 或 https://www.bilibili.com/video/BV1xx411c7mD" onkeydown="if(event.key==='Enter')biliParse()">
+      <button class="arrow-btn" onclick="biliParse()" style="white-space:nowrap;">🔍 解析</button>
+    </div>
+
+    <!-- 加载中 -->
+    <div id="biliLoading" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
+      <p style="margin-top:10px;color:var(--text-sub);font-size:13px;">正在解析视频信息...</p>
+    </div>
+
+    <!-- 视频信息展示区 -->
+    <div id="biliResult" style="display:none;">
+      <div class="bili-video-card" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <!-- 封面与基本信息 -->
+        <div style="display:flex;gap:16px;padding:16px;">
+          <img id="biliCover" src="" alt="封面" style="width:200px;height:125px;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--bg);">
+          <div style="flex:1;min-width:0;">
+            <h3 id="biliTitle" style="font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4;word-break:break-word;">-</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+              <span id="biliAuthor" style="font-size:12px;color:var(--text-sub);">UP主: -</span>
+              <span style="font-size:12px;color:var(--text-sub);">·</span>
+              <span id="biliDuration" style="font-size:12px;color:var(--text-sub);">时长: -</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <span class="bili-stat" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg);color:var(--text-sub);">▶ <span id="biliView">-</span></span>
+              <span class="bili-stat" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg);color:var(--text-sub);">💬 <span id="biliReply">-</span></span>
+              <span class="bili-stat" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg);color:var(--text-sub);">⭐ <span id="biliFav">-</span></span>
+              <span class="bili-stat" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg);color:var(--text-sub);">👍 <span id="biliLike">-</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 清晰度选择 -->
+      <div style="margin-top:16px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">选择清晰度</div>
+        <div id="biliQualityList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+
+      <!-- 下载选项 -->
+      <div id="biliDownloadArea" style="display:none;margin-top:20px;">
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">下载链接</div>
+          <div id="biliDownloadLinks" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:11px;color:var(--text-sub);line-height:1.6;">
+            <strong style="color:var(--text);">💡 下载说明：</strong><br>
+            · B站视频采用 DASH 格式，视频流和音频流是分开的<br>
+            · 点击下方链接可下载对应的流文件（.m4s 格式）<br>
+            · 下载后需使用 FFmpeg 合并音视频：<code style="background:var(--border);padding:1px 4px;border-radius:3px;">ffmpeg -i video.m4s -i audio.m4s -c copy output.mp4</code><br>
+            · 如遇下载失败，可能是链接已过期，请重新解析<br>
+            · 部分高清晰度需要 B站登录态 Cookie
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div id="biliError" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">😔</div>
+      <p id="biliErrorMsg" style="color:var(--text-sub);font-size:13px;">解析失败</p>
+    </div>
+
+    <!-- 技术说明 -->
+    <div style="margin-top:30px;padding:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">⚙️ 技术实现</div>
+      <div style="font-size:11px;color:var(--text-sub);line-height:1.8;">
+        本工具通过 Bilibili 官方 API 获取视频信息：<br>
+        1. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">/x/web-interface/view</code> 获取视频信息和 cid<br>
+        2. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">/x/player/playurl</code> 获取 DASH 音视频流地址<br>
+        3. 由于浏览器 CORS 限制，使用公共代理转发 API 请求<br>
+        4. B站视频采用 DASH 协议，音视频分离存储为 .m4s 文件
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer"><p>工具箱 · Bilibili 视频下载 · 仅供学习研究使用 · 请遵守版权法规</p></footer>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-header"><div class="logo-icon">🧰</div><h2 id="modalTitle">欢迎回来</h2><p id="modalSub">登录以同步你的工具收藏</p></div>
+    <div class="tab-switch"><button class="active" id="loginTab" onclick="switchTab('login')">登录</button><button id="registerTab" onclick="switchTab('register')">注册</button></div>
+    <form id="authForm" onsubmit="handleAuth(event)">
+      <div class="form-group register-fields" id="regNameField"><label>用户名</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="regName" placeholder="请输入用户名"></div></div>
+      <div class="form-group"><label>邮箱 / 用户名</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><input type="text" id="emailInput" placeholder="请输入邮箱或用户名"></div></div>
+      <div class="form-group"><label>密码</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="passwordInput" placeholder="请输入密码"></div></div>
+      <div class="form-group register-fields" id="regConfirmField"><label>确认密码</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="regConfirm" placeholder="请再次输入密码"></div></div>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="form-row" id="formRow"><label class="checkbox-wrap"><input type="checkbox" id="rememberMe"> 记住我</label><button type="button" class="link-btn" onclick="showToast('请联系管理员重置密码')">忘记密码？</button></div>
+      <button type="submit" class="submit-btn" id="submitBtn">登 录</button>
+    </form>
+    <div class="divider">其他方式</div>
+    <div class="social-login"><button class="social-btn" onclick="socialLogin('GitHub')" title="GitHub">🐙</button><button class="social-btn" onclick="socialLogin('Google')" title="Google">🔵</button><button class="social-btn" onclick="socialLogin('微信')" title="微信">💬</button></div>
+    <div class="modal-footer"><span id="footerText">还没有账号？</span><a onclick="switchTab('register')">立即注册</a></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.bili-quality-btn { padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text-sub);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s; }
+.bili-quality-btn:hover { border-color:var(--primary);color:var(--primary); }
+.bili-quality-btn.active { background:var(--primary);color:#fff;border-color:var(--primary); }
+.bili-dl-item { display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg); }
+.bili-dl-info { display:flex;align-items:center;gap:8px; }
+.bili-dl-type { font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px; }
+.bili-dl-type-video { background:rgba(91,95,232,.12);color:var(--primary); }
+.bili-dl-type-audio { background:rgba(34,197,94,.12);color:#22c55e; }
+.bili-dl-label { font-size:12px;color:var(--text-sub); }
+.bili-dl-link { font-size:12px;font-weight:600;color:var(--primary);text-decoration:none;padding:4px 12px;border:1px solid var(--primary);border-radius:6px;transition:all .2s; }
+.bili-dl-link:hover { background:var(--primary);color:#fff; }
+</style>
+
+<script src="js/bilibili.js"></script>
+</body>
+</html>
