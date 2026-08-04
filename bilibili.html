@@ -39,6 +39,17 @@
       <button class="arrow-btn" onclick="biliParse()" style="white-space:nowrap;">🔍 解析</button>
     </div>
 
+    <!-- 代理设置 -->
+    <div class="bili-proxy-box">
+      <div class="bili-proxy-title">代理设置</div>
+      <div class="bili-proxy-row">
+        <input type="text" id="biliProxyInput" class="bili-proxy-input" placeholder="可选：填写自己的 Cloudflare Worker 代理地址，如 https://xxx.workers.dev/?url=">
+        <button class="action-btn" onclick="saveBiliProxy()">保存</button>
+        <button class="action-btn" onclick="clearBiliProxy()">清除</button>
+      </div>
+      <div class="bili-proxy-tip">如果公共代理返回 408 或超时，请部署压缩包内的 <code>cloudflare-worker.js</code>，然后把 Worker 地址填到这里。</div>
+    </div>
+
     <!-- 加载中 -->
     <div id="biliLoading" style="display:none;text-align:center;padding:40px 20px;">
       <div style="font-size:32px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
@@ -154,9 +165,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// GitHub Pages 与 api.bilibili.com 不同源，正式部署时请把这里替换成你自己的 Cloudflare Worker 代理地址。
+// GitHub Pages 与 api.bilibili.com 不同源，正式部署时建议配置自己的 Cloudflare Worker 代理地址。
 // 示例：window.BILI_PROXY_BASE = 'https://你的-worker.workers.dev/?url=';
-window.BILI_PROXY_BASE = window.BILI_PROXY_BASE || 'https://api.allorigins.win/raw?url=';
+window.BILI_PROXY_BASE = window.BILI_PROXY_BASE || '';
 </script>
 
 <style>
@@ -179,6 +190,17 @@ window.BILI_PROXY_BASE = window.BILI_PROXY_BASE || 'https://api.allorigins.win/r
 .bili-disclaimer { margin-top: 16px; padding: 14px 16px; border: 1px solid rgba(251,146,60,.35); border-radius: var(--radius); background: rgba(251,146,60,.08); }
 .bili-disclaimer-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #fb923c; }
 .bili-disclaimer-text { font-size: 11px; line-height: 1.8; color: var(--text-sub); }
+.bili-proxy-box { margin-top: -8px; margin-bottom: 20px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); }
+.bili-proxy-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.bili-proxy-row { display: flex; gap: 8px; align-items: center; }
+.bili-proxy-input { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; background: var(--bg); color: var(--text); outline: none; font-size: 12px; }
+.bili-proxy-input:focus { border-color: var(--primary); }
+.bili-proxy-tip { margin-top: 8px; font-size: 11px; color: var(--text-sub); line-height: 1.6; }
+.bili-proxy-tip code { background: var(--bg); padding: 1px 4px; border-radius: 3px; }
+@media (max-width: 640px) {
+  .bili-input-area, .bili-proxy-row { flex-direction: column; align-items: stretch; }
+  .bili-input-area .arrow-btn, .bili-proxy-row .action-btn { justify-content: center; }
+}
 </style>
 
 <script src="js/bilibili.js"></script>

@@ -10,11 +10,16 @@ let selectedQuality = 80;    // 默认 1080P
 
 // 代理配置：
 // 1. 推荐部署项目根目录的 cloudflare-worker.js，得到自己的 Worker 地址
-// 2. 然后把下面的 window.BILI_PROXY_BASE 改成你的 Worker 地址，例如：https://xxx.workers.dev/?url=
-// 3. 未配置时会临时使用公共代理，公共代理可能限流或不可用，不建议正式部署依赖
-const CORS_PROXY = window.BILI_PROXY_BASE || 'https://api.allorigins.win/raw?url=';
+// 2. 在页面“代理设置”填写 Worker 地址，例如：https://xxx.workers.dev/?url=
+// 3. 未配置时会按顺序尝试公共代理，公共代理可能返回 408 或限流，不建议正式部署依赖
 const BILI_API_BASE = 'https://api.bilibili.com';
 const BILI_PLAYURL_API = '/x/player/playurl';
+const PUBLIC_PROXIES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+  'https://api.codetabs.com/v1/proxy?quest=',
+];
+const REQUEST_TIMEOUT = 15000;
 
 // ===== BV号提取 =====
 function extractBvid(input) {
@@ -41,23 +46,88 @@ function extractBvid(input) {
 // ===== 通过代理调用 API =====
 async function biliFetch(apiPath) {
   const targetUrl = BILI_API_BASE + apiPath;
-  const proxyUrl = buildProxyUrl(targetUrl);
-  const resp = await fetch(proxyUrl, {
-    method: 'GET',
-    headers: { 'Accept': 'application/json' }
-  });
-  if (!resp.ok) throw new Error(`请求失败: ${resp.status}`);
-  return resp.json();
+  const proxies = getProxyList();
+  const errors = [];
+
+  for (let i = 0; i < proxies.length; i++) {
+    const proxy = proxies[i];
+    const proxyUrl = buildProxyUrl(proxy, targetUrl);
+    try {
+      setBiliProgress(
+        apiPath.includes(BILI_PLAYURL_API) ? 55 + i * 8 : 15 + i * 8,
+        `正在通过代理 ${i + 1}/${proxies.length} 请求接口...`
+      );
+      const resp = await fetchWithTimeout(proxyUrl, REQUEST_TIMEOUT);
+      if (!resp.ok) {
+        throw new Error(`代理返回 ${resp.status}`);
+      }
+      return await resp.json();
+    } catch (err) {
+      errors.push(`${proxy}: ${err.message}`);
+      if (i < proxies.length - 1) {
+        setBiliProgress(
+          apiPath.includes(BILI_PLAYURL_API) ? 62 + i * 8 : 22 + i * 8,
+          `当前代理失败，正在切换下一个代理...`
+        );
+      }
+    }
+  }
+
+  throw new Error('所有代理均不可用：' + errors.join('；'));
 }
 
-function buildProxyUrl(targetUrl) {
-  if (CORS_PROXY.includes('{url}')) {
-    return CORS_PROXY.replace('{url}', encodeURIComponent(targetUrl));
+function getProxyList() {
+  const savedProxy = localStorage.getItem('bili_proxy_base');
+  const configuredProxy = savedProxy || window.BILI_PROXY_BASE || '';
+  const proxies = [];
+  if (configuredProxy.trim()) proxies.push(configuredProxy.trim());
+  return [...proxies, ...PUBLIC_PROXIES];
+}
+
+function buildProxyUrl(proxyBase, targetUrl) {
+  if (proxyBase.includes('{url}')) {
+    return proxyBase.replace('{url}', encodeURIComponent(targetUrl));
   }
-  if (CORS_PROXY.includes('?')) {
-    return CORS_PROXY + encodeURIComponent(targetUrl);
+  if (proxyBase.includes('?')) {
+    return proxyBase + encodeURIComponent(targetUrl);
   }
-  return CORS_PROXY.replace(/\/$/, '') + '/?url=' + encodeURIComponent(targetUrl);
+  return proxyBase.replace(/\/$/, '') + '/?url=' + encodeURIComponent(targetUrl);
+}
+
+async function fetchWithTimeout(url, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function saveBiliProxy() {
+  const input = document.getElementById('biliProxyInput');
+  const value = input.value.trim();
+  if (!value) {
+    showToast('请输入代理地址');
+    return;
+  }
+  if (!value.startsWith('https://')) {
+    showToast('代理地址必须以 https:// 开头');
+    return;
+  }
+  localStorage.setItem('bili_proxy_base', value);
+  showToast('代理地址已保存');
+}
+
+function clearBiliProxy() {
+  localStorage.removeItem('bili_proxy_base');
+  const input = document.getElementById('biliProxyInput');
+  if (input) input.value = '';
+  showToast('已清除自定义代理');
 }
 
 // ===== 百分比进度条 =====
@@ -145,7 +215,7 @@ async function biliParse() {
 
   try {
     // Step 1: 获取视频信息（含 cid）
-    setBiliProgress(15, '正在获取视频基础信息...');
+    setBiliProgress(10, '正在获取视频基础信息...');
     const viewResp = await biliFetch(`/x/web-interface/view?bvid=${bvid}`);
 
     if (viewResp.code !== 0) {
@@ -179,7 +249,7 @@ async function biliParse() {
     biliPlayUrlData = playUrlResp.data;
 
     // 渲染结果
-    setBiliProgress(82, '正在整理清晰度和下载链接...');
+    setBiliProgress(88, '正在整理清晰度和下载链接...');
     renderVideoInfo();
     renderQualityList();
     renderDownloadLinks();
@@ -195,8 +265,14 @@ async function biliParse() {
     stopBiliLoading();
     document.getElementById('biliError').style.display = 'block';
     let errMsg = err.message || '未知错误';
-    if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-      errMsg = '网络请求失败。GitHub Pages 无法直接读取 api.bilibili.com，请配置自己的代理地址后重试';
+    if (
+      errMsg.includes('408') ||
+      errMsg.includes('AbortError') ||
+      errMsg.includes('Failed to fetch') ||
+      errMsg.includes('NetworkError') ||
+      errMsg.includes('所有代理均不可用')
+    ) {
+      errMsg = '代理请求超时或不可用。GitHub Pages 无法直接读取 api.bilibili.com，建议部署 cloudflare-worker.js 并在上方填写自己的 Worker 代理地址。详细信息：' + errMsg;
     }
     document.getElementById('biliErrorMsg').textContent = '解析失败：' + errMsg;
   }
@@ -385,6 +461,9 @@ function init() {
   }
   const savedUser = localStorage.getItem('toolbox_user');
   if (savedUser) loginUser(savedUser);
+  const savedProxy = localStorage.getItem('bili_proxy_base') || window.BILI_PROXY_BASE || '';
+  const proxyInput = document.getElementById('biliProxyInput');
+  if (proxyInput && savedProxy) proxyInput.value = savedProxy;
 }
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
