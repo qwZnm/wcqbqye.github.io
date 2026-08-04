@@ -80,21 +80,6 @@ async function fetchBlobURL(url, mimeType, progressStart, progressEnd, label) {
   return URL.createObjectURL(new Blob(chunks, { type: mimeType }));
 }
 
-async function fetchCoreJSBlobURL(coreURL, wasmBlobURL) {
-  const res = await fetch(coreURL, { cache: 'force-cache' });
-  if (!res.ok) throw new Error(`FFmpeg core-st 脚本下载失败：${res.status}`);
-  let text = await res.text();
-  text = text.replace(
-    'var gb="ffmpeg-core.wasm";if(!hb()){var ib=gb;gb=e.locateFile?e.locateFile(ib,l):l+ib}',
-    `var gb=${JSON.stringify(wasmBlobURL)};function hb(){return true}`
-  );
-  if (!text.includes(wasmBlobURL)) {
-    text = text.replace('var gb="ffmpeg-core.wasm";', `var gb=${JSON.stringify(wasmBlobURL)};`);
-  }
-  setFFmpegProgress(55, 'FFmpeg core-st 脚本已准备完成');
-  return URL.createObjectURL(new Blob([text], { type: 'text/javascript' }));
-}
-
 async function ensureFFmpegLoaded() {
   if (ffmpegInstance) return ffmpegInstance;
   if (ffmpegLoadingPromise) return ffmpegLoadingPromise;
@@ -108,18 +93,33 @@ async function ensureFFmpegLoaded() {
     setFFmpegProgress(15, '正在准备 core-st 单线程内核...');
 
     const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.11.1/dist';
+    const coreBlobURL = await fetchBlobURL(
+      `${coreBase}/ffmpeg-core.js`,
+      'text/javascript',
+      18,
+      32,
+      'ffmpeg-core-st.js'
+    );
     const wasmBlobURL = await fetchBlobURL(
       `${coreBase}/ffmpeg-core.wasm`,
       'application/wasm',
-      18,
-      48,
+      33,
+      52,
       'ffmpeg-core-st.wasm'
     );
-    const coreBlobURL = await fetchCoreJSBlobURL(`${coreBase}/ffmpeg-core.js`, wasmBlobURL);
+    const workerBlobURL = await fetchBlobURL(
+      `${coreBase}/ffmpeg-core.worker.js`,
+      'text/javascript',
+      53,
+      62,
+      'ffmpeg-core-st.worker.js'
+    );
 
     const ffmpeg = createFFmpeg({
       log: false,
       corePath: coreBlobURL,
+      wasmPath: wasmBlobURL,
+      workerPath: workerBlobURL,
       progress: ({ ratio }) => {
         if (ratio > 0) setFFmpegProgress(30 + ratio * 65, 'FFmpeg 正在处理文件...');
       },
