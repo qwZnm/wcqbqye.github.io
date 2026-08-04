@@ -129,7 +129,7 @@ const toolTemplates = {
           <button class="action-btn" onclick="fillTranslateDemo()">示例</button>
         </div>
         <div class="translator-note">
-          已参考并优化你上传的 <code>translator.py</code>：保留“自动判断中文/英文并选择目标语言”的逻辑；网页端无法直接运行 Python，因此前端使用在线翻译接口，命令行版已放在 <code>python/translator.py</code>。
+          前端使用在线翻译接口，命令行版已放在 <code>python/translator.py</code>。
         </div>
       </div>`
   },
