@@ -1,8 +1,8 @@
-// ===== 首页脚本（不含 Base64/Bilibili，已拆分至独立页面）=====
+// ===== 首页脚本（Base64/图片信息已拆分至独立页面）=====
 
-// ===== 10 精选工具（JSON 与 Bilibili 位置已交换）=====
+// ===== 10 精选工具（Bilibili 暂时维护中）=====
 const tools = [
-  { icon:'📺', name:'Bilibili 视频下载', desc:'BV号/链接解析 · 多清晰度 · 音视频下载', tool:'bilibili' },
+  { icon:'📺', name:'Bilibili 视频下载', desc:'维护中 · 暂不开放', tool:'bilibili' },
   { icon:'🖼️', name:'读取图片信息', desc:'尺寸/格式 · EXIF 元数据 · GPS 信息', tool:'imginfo' },
   { icon:'🔠', name:'Base64 编解码', desc:'文本 ↔ Base64 · 文件 ↔ Base64 · UTF-8 安全', tool:'base64' },
   { icon:'▣', name:'二维码生成', desc:'文本/网址/WiFi · Logo/渐变 · PNG/SVG', tool:'qrcode' },
@@ -46,17 +46,17 @@ function filterTools() {
 
 // ===== SPA Navigation =====
 function openTool(toolId) {
+  // Bilibili 工具维护中：不跳转、不进入工具页
+  if (toolId === 'bilibili') {
+    showToast('Bilibili 视频下载维护中，暂不开放');
+    return;
+  }
+
   if (!currentUser) { showToast('请先登录后使用工具'); openModal(); return; }
 
   // Base64 已拆分为独立页面，直接跳转
   if (toolId === 'base64') {
     window.location.href = 'base64.html';
-    return;
-  }
-
-  // Bilibili 已拆分为独立页面，直接跳转
-  if (toolId === 'bilibili') {
-    window.location.href = 'bilibili.html';
     return;
   }
 
