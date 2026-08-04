@@ -1,6 +1,6 @@
 // ===== Bilibili 视频下载页面专用脚本 =====
-// 技术原理：调用 B站官方 API 获取视频信息和 DASH 音视频流地址
-// 由于浏览器 CORS 限制，使用公共代理转发请求
+// 技术原理：前端请求代理服务，代理服务再调用 B站官方 API 获取视频信息和 DASH 音视频流地址
+// GitHub Pages 与 api.bilibili.com 不同源，浏览器会拦截前端直接读取响应，因此必须通过代理服务转发
 
 // ===== State =====
 let currentUser = null;
@@ -8,8 +8,11 @@ let biliVideoData = null;    // { bvid, cid, title, pic, owner, duration, stat, 
 let biliPlayUrlData = null;  // { dash: { video[], audio[] }, accept_quality, accept_description }
 let selectedQuality = 80;    // 默认 1080P
 
-// CORS 代理配置（用于绕过浏览器跨域限制）
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// 代理配置：
+// 1. 推荐部署项目根目录的 cloudflare-worker.js，得到自己的 Worker 地址
+// 2. 然后把下面的 window.BILI_PROXY_BASE 改成你的 Worker 地址，例如：https://xxx.workers.dev/?url=
+// 3. 未配置时会临时使用公共代理，公共代理可能限流或不可用，不建议正式部署依赖
+const CORS_PROXY = window.BILI_PROXY_BASE || 'https://api.allorigins.win/raw?url=';
 const BILI_API_BASE = 'https://api.bilibili.com';
 const BILI_PLAYURL_API = '/x/player/playurl';
 
@@ -38,13 +41,23 @@ function extractBvid(input) {
 // ===== 通过代理调用 API =====
 async function biliFetch(apiPath) {
   const targetUrl = BILI_API_BASE + apiPath;
-  const proxyUrl = CORS_PROXY + encodeURIComponent(targetUrl);
+  const proxyUrl = buildProxyUrl(targetUrl);
   const resp = await fetch(proxyUrl, {
     method: 'GET',
     headers: { 'Accept': 'application/json' }
   });
   if (!resp.ok) throw new Error(`请求失败: ${resp.status}`);
   return resp.json();
+}
+
+function buildProxyUrl(targetUrl) {
+  if (CORS_PROXY.includes('{url}')) {
+    return CORS_PROXY.replace('{url}', encodeURIComponent(targetUrl));
+  }
+  if (CORS_PROXY.includes('?')) {
+    return CORS_PROXY + encodeURIComponent(targetUrl);
+  }
+  return CORS_PROXY.replace(/\/$/, '') + '/?url=' + encodeURIComponent(targetUrl);
 }
 
 // ===== 百分比进度条 =====
@@ -183,7 +196,7 @@ async function biliParse() {
     document.getElementById('biliError').style.display = 'block';
     let errMsg = err.message || '未知错误';
     if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
-      errMsg = '网络请求失败，可能是 CORS 代理不可用，请稍后重试';
+      errMsg = '网络请求失败。GitHub Pages 无法直接读取 api.bilibili.com，请配置自己的代理地址后重试';
     }
     document.getElementById('biliErrorMsg').textContent = '解析失败：' + errMsg;
   }

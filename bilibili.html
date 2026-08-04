@@ -110,8 +110,9 @@
         本工具通过 Bilibili 官方 API 获取视频信息和播放地址：<br>
         1. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">/x/web-interface/view</code> 获取视频信息和 cid<br>
         2. 调用 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">https://api.bilibili.com/x/player/playurl</code> 获取 DASH 音视频流地址<br>
-        3. 由于浏览器 CORS 限制，使用公共代理转发 API 请求<br>
-        4. B站视频采用 DASH 协议，音视频分离存储为 .m4s 文件
+        3. GitHub Pages 与 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">api.bilibili.com</code> 不同源，浏览器会拦截直接 fetch 响应，因此必须通过代理服务转发请求<br>
+        4. 项目已附带 <code style="background:var(--bg);padding:1px 4px;border-radius:3px;">cloudflare-worker.js</code>，可部署为自己的 CORS 代理<br>
+        5. B站视频采用 DASH 协议，音视频分离存储为 .m4s 文件
       </div>
     </div>
 
@@ -151,6 +152,12 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<script>
+// GitHub Pages 与 api.bilibili.com 不同源，正式部署时请把这里替换成你自己的 Cloudflare Worker 代理地址。
+// 示例：window.BILI_PROXY_BASE = 'https://你的-worker.workers.dev/?url=';
+window.BILI_PROXY_BASE = window.BILI_PROXY_BASE || 'https://api.allorigins.win/raw?url=';
+</script>
 
 <style>
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
