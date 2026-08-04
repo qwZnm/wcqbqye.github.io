@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FFmpeg 工具箱 · 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+  <a class="back-btn" href="index.html" style="display:flex;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    返回首页
+  </a>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>工具箱</span>
+  </div>
+  <div class="header-actions" style="margin-left:auto;">
+    <button class="icon-btn" onclick="toggleTheme()" title="切换主题"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+  </div>
+</header>
+
+<div id="toolView" style="display:block;">
+  <div class="tool-header">
+    <div class="tool-header-row">
+      <div class="tool-title"><div class="tool-title-icon">🎞️</div><span>FFmpeg 工具箱</span></div>
+    </div>
+    <div class="tool-subtitle">单线程 ffmpeg-wasm 内核 · 无需 SharedArrayBuffer · github.io 可直接运行 · 建议处理 500MB 以内文件</div>
+  </div>
+  <div class="tool-body">
+    <div class="ffmpeg-wrap">
+      <div class="ffmpeg-notice">
+        <strong>单线程内核说明</strong>
+        <p>本页使用单线程版 <code>@ffmpeg/core</code>，不需要 SharedArrayBuffer，也不需要 COOP/COEP 等特殊 HTTP 响应头，适合直接部署到 GitHub Pages。</p>
+        <p>代价是处理速度比多线程版慢一些，但音频剪切、音频转格式、小视频剪切等任务完全够用。WASM 内存通常约 1-2GB，已设置 500MB 文件保护阈值，过大文件会直接拦截。</p>
+        <p>首次访问本页会下载约 20-30MB 的 WASM 内核文件，下面会显示加载进度；浏览器缓存后，第二次打开通常会更快。</p>
+      </div>
+      <div class="ffmpeg-loader" id="ffmpegLoader">
+        <div class="ffmpeg-loader-head">
+          <span id="ffmpegLoadText">正在准备加载单线程 FFmpeg 内核...</span>
+          <strong id="ffmpegLoadPercent">0%</strong>
+        </div>
+        <div class="ffmpeg-progress"><div id="ffmpegProgressFill"></div></div>
+      </div>
+      <div class="ffmpeg-form">
+        <div class="form-group">
+          <label>功能类型</label>
+          <select id="ffmpegMode" class="translator-select" onchange="updateFFmpegMode()">
+            <option value="cut-video">剪切视频</option>
+            <option value="cut-audio">剪切音频</option>
+            <option value="audio-convert">音频转格式</option>
+            <option value="merge-av">视频音频合并</option>
+          </select>
+        </div>
+        <div class="ffmpeg-file-row">
+          <label class="ffmpeg-file-card">
+            <span id="ffmpegMainLabel">选择视频文件</span>
+            <input type="file" id="ffmpegMainFile" accept="video/*">
+            <em id="ffmpegMainHint">支持 MP4 / MOV / WEBM 等常见视频</em>
+          </label>
+          <label class="ffmpeg-file-card" id="ffmpegAudioBox" style="display:none;">
+            <span>选择音频文件</span>
+            <input type="file" id="ffmpegAudioFile" accept="audio/*">
+            <em>合并时会把该音频写入视频</em>
+          </label>
+        </div>
+        <div class="ffmpeg-time-row" id="ffmpegTimeRow">
+          <div class="form-group">
+            <label>开始时间</label>
+            <input class="ffmpeg-input" id="ffmpegStart" value="00:00:00" placeholder="00:00:00">
+          </div>
+          <div class="form-group">
+            <label>结束时间</label>
+            <input class="ffmpeg-input" id="ffmpegEnd" placeholder="例如 00:00:10">
+          </div>
+        </div>
+        <div class="form-group" id="ffmpegFormatBox" style="display:none;">
+          <label>输出格式</label>
+          <select id="ffmpegFormat" class="translator-select">
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+            <option value="aac">AAC</option>
+            <option value="ogg">OGG</option>
+            <option value="flac">FLAC</option>
+          </select>
+        </div>
+        <div class="translator-actions">
+          <button class="arrow-btn" onclick="runFFmpegTask()">开始处理</button>
+          <button class="action-btn" onclick="resetFFmpegTool()">清空</button>
+        </div>
+        <div class="ffmpeg-status" id="ffmpegStatus">正在加载单线程 FFmpeg 内核，请稍候。</div>
+        <div class="result-box" id="ffmpegResult">
+          <div class="result-header">
+            <span class="result-title">处理完成</span>
+            <div class="result-actions">
+              <a class="action-btn" id="ffmpegDownload" href="#" download>💾 下载结果</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer"><p>工具箱 · FFmpeg 工具箱 · 单线程 WASM 内核</p></footer>
+<div class="toast" id="toast"></div>
+
+<script src="js/ffmpeg.js?v=20260805-single-core"></script>
+</body>
+</html>
