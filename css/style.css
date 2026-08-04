@@ -113,10 +113,28 @@ body {
 /* ===== Tool View (SPA) ===== */
 #toolView { display: none; }
 .tool-header { max-width: 800px; margin: 0 auto; padding: 24px 32px 0; }
+.tool-header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .tool-title { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
 .tool-title-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .tool-subtitle { font-size: 13px; color: var(--text-sub); margin-top: 6px; }
 .tool-body { max-width: 800px; margin: 0 auto; padding: 20px 32px 40px; }
+.python-download-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: var(--shadow-hover);
+  transition: all .2s;
+}
+.python-download-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
 /* Tab Switch */
 .tool-tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
@@ -166,6 +184,109 @@ body {
 .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .result-title { font-size: 13px; font-weight: 600; }
 .result-actions { display: flex; gap: 8px; }
+
+/* Translator Tool */
+.translator-wrap {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.translator-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.translator-select {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+.translator-select:focus { border-color: var(--primary); }
+.translator-swap {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.translator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.translator-panel {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.translator-panel-head {
+  height: 42px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.translator-panel-head span {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+.translator-textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+.translator-output { color: var(--primary); font-weight: 600; }
+.translator-hint {
+  min-height: 34px;
+  padding: 0 14px 12px;
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.translator-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.translator-note {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(91,95,232,.08);
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.translator-note code {
+  color: var(--primary);
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
 
 /* Random Anime Tool */
 .anime-random-wrap {
@@ -543,8 +664,14 @@ body {
   .hero h1 { font-size: 22px; }
   .aword-card { align-items: flex-start; flex-direction: column; text-align: left; }
   .tool-header, .tool-body { padding-left: 14px; padding-right: 14px; }
+  .tool-header-row { align-items: flex-start; flex-direction: column; }
+  .python-download-btn { height: 32px; padding: 0 12px; }
   .anime-random-wrap { padding: 16px; border-radius: 18px; }
   .api-hero h2 { font-size: 23px; }
+  .translator-toolbar { flex-direction: column; align-items: stretch; }
+  .translator-swap { align-self: center; transform: rotate(90deg); }
+  .translator-grid { grid-template-columns: 1fr; }
+  .translator-actions { flex-wrap: wrap; }
   .api-stats { grid-template-columns: 1fr; }
   .api-card-grid { grid-template-columns: 1fr; }
   .anime-img-box.show { min-height: 430px; max-height: 470px; }
