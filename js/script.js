@@ -29,11 +29,17 @@ const toolTemplates = {
         <div class="anime-random-grid">
           <div class="anime-random-card">
             <div class="anime-random-title">随机二次元头像</div>
-            <img id="animeAvatarImg" alt="随机二次元头像">
+            <div class="anime-img-box">
+              <img id="animeAvatarImg" alt="随机二次元头像" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animeAvatarStatus">正在加载头像...</div>
+            </div>
           </div>
           <div class="anime-random-card">
             <div class="anime-random-title">随机二次元动漫</div>
-            <img id="animeAutoImg" alt="随机二次元动漫">
+            <div class="anime-img-box">
+              <img id="animeAutoImg" alt="随机二次元动漫" referrerpolicy="no-referrer">
+              <div class="anime-img-status" id="animeAutoStatus">正在加载动漫图片...</div>
+            </div>
           </div>
         </div>
       </div>`
@@ -207,12 +213,53 @@ async function loadRandomAword() {
 }
 
 // ===== Random Anime Images =====
+async function loadAnimeImage(imgId, statusId, apiUrl) {
+  const img = document.getElementById(imgId);
+  const status = document.getElementById(statusId);
+  if (!img || !status) return;
+
+  const requestUrl = `${apiUrl}?t=${Date.now()}`;
+  img.removeAttribute('src');
+  img.style.display = 'none';
+  status.style.display = 'flex';
+  status.textContent = '正在加载图片...';
+
+  const showImage = (url) => {
+    img.onload = () => {
+      status.style.display = 'none';
+      img.style.display = 'block';
+    };
+    img.onerror = () => {
+      img.style.display = 'none';
+      status.style.display = 'flex';
+      status.textContent = '图片加载失败，请点击“刷新图片”重试。';
+    };
+    img.src = url;
+  };
+
+  try {
+    const res = await fetch(requestUrl, { cache: 'no-store', redirect: 'follow' });
+    const contentType = res.headers.get('content-type') || '';
+    let imageUrl = res.url || requestUrl;
+
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      imageUrl = data.url || data.img || data.image || data.data || imageUrl;
+    } else if (contentType.includes('text/')) {
+      const text = await res.text();
+      const match = text.match(/https?:\/\/[^\s"'<>]+/);
+      if (match) imageUrl = match[0];
+    }
+
+    showImage(imageUrl);
+  } catch (err) {
+    showImage(requestUrl);
+  }
+}
+
 function refreshAnimeImages() {
-  const avatar = document.getElementById('animeAvatarImg');
-  const anime = document.getElementById('animeAutoImg');
-  const now = Date.now();
-  if (avatar) avatar.src = `https://api.sretna.cn/api/anime/tx?t=${now}`;
-  if (anime) anime.src = `https://api.sretna.cn/api/anime/auto?t=${now + 1}`;
+  loadAnimeImage('animeAvatarImg', 'animeAvatarStatus', 'https://api.sretna.cn/api/anime/tx');
+  loadAnimeImage('animeAutoImg', 'animeAutoStatus', 'https://api.sretna.cn/api/anime/auto');
 }
 
 // ===== Init =====

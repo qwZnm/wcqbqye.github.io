@@ -201,12 +201,28 @@ body {
   font-weight: 700;
   border-bottom: 1px solid var(--border);
 }
+.anime-img-box {
+  position: relative;
+  min-height: 320px;
+  background: var(--border);
+}
 .anime-random-card img {
   width: 100%;
   height: 320px;
   display: block;
   object-fit: cover;
-  background: var(--border);
+}
+.anime-img-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-sub);
+  font-size: 13px;
+  text-align: center;
+  background: var(--bg);
 }
 
 /* Login Modal */
@@ -279,20 +295,6 @@ body {
   padding: 44px 38px 28px;
   text-align: center;
   border-bottom: 1px solid var(--border);
-}
-.about-avatar-wrap {
-  position: relative;
-  width: 132px;
-  height: 132px;
-  margin: 0 auto 20px;
-}
-.about-avatar {
-  width: 132px;
-  height: 132px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 5px solid rgba(255,255,255,.86);
-  box-shadow: 0 14px 36px rgba(0,0,0,.22);
 }
 .about-title {
   font-size: 34px;
@@ -378,6 +380,7 @@ body {
   .tool-header, .tool-body { padding-left: 14px; padding-right: 14px; }
   .anime-random-actions { align-items: flex-start; flex-direction: column; }
   .anime-random-grid { grid-template-columns: 1fr; }
+  .anime-img-box { min-height: 260px; }
   .anime-random-card img { height: 260px; }
   .about-page { padding: 32px 14px; background-attachment: scroll; }
   .about-hero { padding: 34px 22px 24px; }
