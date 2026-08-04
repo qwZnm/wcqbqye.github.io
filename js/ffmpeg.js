@@ -71,7 +71,7 @@ async function ensureFFmpegLoaded() {
 
     const ffmpeg = createFFmpeg({
       log: false,
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
       progress: ({ ratio }) => {
         if (ratio > 0) setFFmpegProgress(30 + ratio * 65, 'FFmpeg 正在处理文件...');
       },

@@ -27,13 +27,13 @@
     <div class="tool-header-row">
       <div class="tool-title"><div class="tool-title-icon">🎞️</div><span>FFmpeg 工具箱</span></div>
     </div>
-    <div class="tool-subtitle">单线程 ffmpeg-wasm 内核 · 无需 SharedArrayBuffer · github.io 可直接运行 · 建议处理 500MB 以内文件</div>
+    <div class="tool-subtitle">core-st 单线程 ffmpeg-wasm 内核 · 无需 SharedArrayBuffer · github.io 可直接运行 · 建议处理 500MB 以内文件</div>
   </div>
   <div class="tool-body">
     <div class="ffmpeg-wrap">
       <div class="ffmpeg-notice">
         <strong>单线程内核说明</strong>
-        <p>本页使用单线程版 <code>@ffmpeg/core</code>，不需要 SharedArrayBuffer，也不需要 COOP/COEP 等特殊 HTTP 响应头，适合直接部署到 GitHub Pages。</p>
+        <p>本页使用纯单线程版 <code>@ffmpeg/core-st@0.11.1</code>，不依赖 pthread，不需要 SharedArrayBuffer，也不需要 COOP/COEP 等特殊 HTTP 响应头，适合直接部署到 GitHub Pages。</p>
         <p>代价是处理速度比多线程版慢一些，但音频剪切、音频转格式、小视频剪切等任务完全够用。WASM 内存通常约 1-2GB，已设置 500MB 文件保护阈值，过大文件会直接拦截。</p>
         <p>首次访问本页会下载约 20-30MB 的 WASM 内核文件，下面会显示加载进度；浏览器缓存后，第二次打开通常会更快。</p>
       </div>
@@ -107,6 +107,6 @@
 <footer class="footer"><p>工具箱 · FFmpeg 工具箱 · 单线程 WASM 内核</p></footer>
 <div class="toast" id="toast"></div>
 
-<script src="js/ffmpeg.js?v=20260805-single-core"></script>
+<script src="js/ffmpeg.js?v=20260805-core-st"></script>
 </body>
 </html>
