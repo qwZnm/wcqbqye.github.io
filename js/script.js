@@ -29,8 +29,6 @@ const toolTemplates = {
         </div>
         <div class="api-stats">
           <div><strong>4</strong><span>动漫接口</span></div>
-          <div><strong>4</strong><span>抽屉预览</span></div>
-          <div><strong>∞</strong><span>随机生成</span></div>
         </div>
         <div class="api-section-title">
           <span>图片 API</span>
