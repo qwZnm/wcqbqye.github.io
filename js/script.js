@@ -3,7 +3,7 @@
 // ===== 10 精选工具（JSON 与 Bilibili 位置已交换）=====
 const tools = [
   { icon:'📺', name:'Bilibili 视频下载', desc:'BV号/链接解析 · 多清晰度 · 音视频下载', tool:'bilibili' },
-  { icon:'🔎', name:'正则测试', desc:'实时高亮 · 分组捕获 · 标志位', tool:'regex' },
+  { icon:'🖼️', name:'读取图片信息', desc:'尺寸/格式 · EXIF 元数据 · GPS 信息', tool:'imginfo' },
   { icon:'🔠', name:'Base64 编解码', desc:'文本 ↔ Base64 · 文件 ↔ Base64 · UTF-8 安全', tool:'base64' },
   { icon:'▣', name:'二维码生成', desc:'文本/网址/WiFi · Logo/渐变 · PNG/SVG', tool:'qrcode' },
   { icon:'🗜️', name:'图片压缩', desc:'批量压缩 · JPG/PNG/WebP/AVIF', tool:'imgcompress' },
@@ -16,7 +16,6 @@ const tools = [
 
 // ===== Tool Templates（Base64/Bilibili 已移至独立页面）=====
 const toolTemplates = {
-  regex: { icon:'🔎', title:'正则测试', subtitle:'实时高亮 · 分组捕获 · 标志位', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   qrcode: { icon:'▣', title:'二维码生成', subtitle:'文本/网址/WiFi · Logo/渐变 · PNG/SVG', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   imgcompress: { icon:'🗜️', title:'图片压缩', subtitle:'批量压缩 · JPG/PNG/WebP/AVIF', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   pdfmerge: { icon:'📑', title:'PDF 合并', subtitle:'多个 PDF · 拖拽排序 · 本地处理', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
@@ -58,6 +57,12 @@ function openTool(toolId) {
   // Bilibili 已拆分为独立页面，直接跳转
   if (toolId === 'bilibili') {
     window.location.href = 'bilibili.html';
+    return;
+  }
+
+  // 读取图片信息已拆分为独立页面，直接跳转
+  if (toolId === 'imginfo') {
+    window.location.href = 'imginfo.html';
     return;
   }
 
