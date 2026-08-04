@@ -18,29 +18,67 @@ const tools = [
 const toolTemplates = {
   qrcode: {
     icon:'🌸',
-    title:'随机二次元图片',
-    subtitle:'随机二次元头像 · 随机二次元动漫 · 每次刷新都有新图片',
+    title:'随机二次元 API',
+    subtitle:'模仿南风 API 风格 · 接口卡片 · 点击试用生成随机二次元图片',
     render: () => `
       <div class="anime-random-wrap">
-        <div class="anime-random-actions">
-          <button class="arrow-btn" onclick="refreshAnimeImages()">刷新图片</button>
-          <span>图片来自随机二次元接口，加载速度取决于接口响应。</span>
+        <div class="api-hero">
+          <div class="api-badge">免费 · 快速 · 随机</div>
+          <h2>随机二次元图片 API</h2>
+          <p>二次元壁纸 · 手机壁纸 · 电脑壁纸 · 随机头像</p>
         </div>
-        <div class="anime-random-grid">
-          <div class="anime-random-card">
-            <div class="anime-random-title">随机二次元头像</div>
-            <div class="anime-img-box">
-              <img id="animeAvatarImg" alt="随机二次元头像" referrerpolicy="no-referrer">
-              <div class="anime-img-status" id="animeAvatarStatus">正在加载头像...</div>
-            </div>
+        <div class="api-stats">
+          <div><strong>4</strong><span>动漫接口</span></div>
+          <div><strong>∞</strong><span>随机生成</span></div>
+          <div><strong>1</strong><span>点击试用</span></div>
+        </div>
+        <div class="api-section-title">
+          <span>图片 API</span>
+          <em>4 个接口</em>
+        </div>
+        <div class="api-card-grid">
+          <div class="api-card">
+            <div class="api-card-top"><span>已发布</span><em>自动动漫</em></div>
+            <h3>自适应二次元动漫</h3>
+            <p>随机返回横屏或竖屏动漫图。</p>
+            <code>https://api.sretna.cn/api/anime/auto</code>
+            <button class="api-test-btn" onclick="testAnimeApi('auto')">试用生成</button>
           </div>
-          <div class="anime-random-card">
-            <div class="anime-random-title">随机二次元动漫</div>
-            <div class="anime-img-box">
-              <img id="animeAutoImg" alt="随机二次元动漫" referrerpolicy="no-referrer">
-              <div class="anime-img-status" id="animeAutoStatus">正在加载动漫图片...</div>
-            </div>
+          <div class="api-card">
+            <div class="api-card-top"><span>已发布</span><em>电脑动漫</em></div>
+            <h3>电脑端二次元动漫</h3>
+            <p>二次元电脑图片，宽屏高清。</p>
+            <code>https://api.sretna.cn/api/anime/pc</code>
+            <button class="api-test-btn" onclick="testAnimeApi('pc')">试用生成</button>
           </div>
+          <div class="api-card">
+            <div class="api-card-top"><span>已发布</span><em>手机动漫</em></div>
+            <h3>手机端二次元动漫</h3>
+            <p>二次元手机壁纸，竖版图片。</p>
+            <code>https://api.sretna.cn/api/anime/pe</code>
+            <button class="api-test-btn" onclick="testAnimeApi('pe')">试用生成</button>
+          </div>
+          <div class="api-card">
+            <div class="api-card-top"><span>已发布</span><em>动漫头像</em></div>
+            <h3>头像端二次元动漫</h3>
+            <p>随机二次元方形头像。</p>
+            <code>https://api.sretna.cn/api/anime/tx</code>
+            <button class="api-test-btn" onclick="testAnimeApi('tx')">试用生成</button>
+          </div>
+        </div>
+        <div class="api-preview">
+          <div class="api-preview-head">
+            <div>
+              <span>接口试用</span>
+              <strong id="animePreviewTitle">自适应二次元动漫</strong>
+            </div>
+            <button class="action-btn" onclick="refreshAnimeImages()">重新生成</button>
+          </div>
+          <div class="anime-img-box">
+            <img id="animePreviewImg" alt="随机二次元图片" referrerpolicy="no-referrer">
+            <div class="anime-img-status" id="animePreviewStatus">正在加载图片...</div>
+          </div>
+          <code class="api-preview-code" id="animePreviewCode">https://api.sretna.cn/api/anime/auto</code>
         </div>
       </div>`
   },
@@ -104,7 +142,7 @@ function openTool(toolId) {
   document.getElementById('toolTitle').textContent = tpl.title;
   document.getElementById('toolSubtitle').textContent = tpl.subtitle;
   document.getElementById('toolBody').innerHTML = tpl.render();
-  if (toolId === 'qrcode') refreshAnimeImages();
+  if (toolId === 'qrcode') testAnimeApi('auto');
   window.scrollTo(0, 0);
 }
 
@@ -212,7 +250,15 @@ async function loadRandomAword() {
   }
 }
 
-// ===== Random Anime Images =====
+// ===== Random Anime API Preview =====
+const animeApiMap = {
+  auto: { title: '自适应二次元动漫', url: 'https://api.sretna.cn/api/anime/auto' },
+  pc: { title: '电脑端二次元动漫', url: 'https://api.sretna.cn/api/anime/pc' },
+  pe: { title: '手机端二次元动漫', url: 'https://api.sretna.cn/api/anime/pe' },
+  tx: { title: '头像端二次元动漫', url: 'https://api.sretna.cn/api/anime/tx' }
+};
+let currentAnimeApi = 'auto';
+
 async function loadAnimeImage(imgId, statusId, apiUrl) {
   const img = document.getElementById(imgId);
   const status = document.getElementById(statusId);
@@ -257,9 +303,18 @@ async function loadAnimeImage(imgId, statusId, apiUrl) {
   }
 }
 
+function testAnimeApi(type) {
+  currentAnimeApi = animeApiMap[type] ? type : 'auto';
+  const item = animeApiMap[currentAnimeApi];
+  const title = document.getElementById('animePreviewTitle');
+  const code = document.getElementById('animePreviewCode');
+  if (title) title.textContent = item.title;
+  if (code) code.textContent = item.url;
+  loadAnimeImage('animePreviewImg', 'animePreviewStatus', item.url);
+}
+
 function refreshAnimeImages() {
-  loadAnimeImage('animeAvatarImg', 'animeAvatarStatus', 'https://api.sretna.cn/api/anime/tx');
-  loadAnimeImage('animeAutoImg', 'animeAutoStatus', 'https://api.sretna.cn/api/anime/auto');
+  testAnimeApi(currentAnimeApi);
 }
 
 // ===== Init =====

@@ -169,46 +169,191 @@ body {
 
 /* Random Anime Tool */
 .anime-random-wrap {
-  background: var(--card-bg);
+  background:
+    radial-gradient(circle at top left, rgba(124,128,240,.18), transparent 34%),
+    var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
 }
-.anime-random-actions {
+.api-hero {
+  text-align: center;
+  padding: 12px 10px 22px;
+}
+.api-badge {
+  display: inline-flex;
+  padding: 5px 14px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: rgba(91,95,232,.1);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+.api-hero h2 {
+  font-size: 28px;
+  font-weight: 850;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.api-hero p {
+  color: var(--text-sub);
+  font-size: 14px;
+}
+.api-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.api-stats div {
+  padding: 16px;
+  text-align: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+.api-stats strong {
+  display: block;
+  color: var(--primary);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+}
+.api-stats span {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.api-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0 14px;
+}
+.api-section-title span {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 850;
+}
+.api-section-title em {
+  font-style: normal;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.api-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.api-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg);
+  padding: 18px;
+  transition: all .2s;
+}
+.api-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+.api-card-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.api-card-top span,
+.api-card-top em {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+.api-card-top span {
+  background: rgba(34,197,94,.12);
+  color: #16a34a;
+}
+.api-card-top em {
+  background: rgba(91,95,232,.12);
+  color: var(--primary);
+}
+.api-card h3 {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 850;
+  margin-bottom: 8px;
+}
+.api-card p {
+  min-height: 38px;
+  color: var(--text-sub);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.api-card code,
+.api-preview-code {
+  display: block;
+  margin: 12px 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--primary);
+  font-size: 11px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.api-test-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 17px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.api-test-btn:hover { background: var(--primary-dark); }
+.api-preview {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.api-preview-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.api-preview-head span {
+  display: block;
+  margin-bottom: 4px;
   color: var(--text-sub);
   font-size: 12px;
 }
-.anime-random-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 16px;
-}
-.anime-random-card {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--bg);
-}
-.anime-random-title {
-  padding: 12px 14px;
+.api-preview-head strong {
   color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
+  font-size: 15px;
 }
 .anime-img-box {
   position: relative;
-  min-height: 320px;
+  min-height: 420px;
   background: var(--border);
 }
-.anime-random-card img {
+.anime-img-box img {
   width: 100%;
-  height: 320px;
+  height: 420px;
   display: block;
   object-fit: cover;
 }
@@ -270,31 +415,42 @@ body {
 .about-page {
   min-height: calc(100vh - var(--header-h));
   padding: 64px 20px;
-  background:
-    linear-gradient(135deg, rgba(13,17,23,.72), rgba(91,95,232,.28)),
-    url("../images/about-bg.jpg") center / cover fixed;
+  background: url("../images/about-bg.jpg") center / cover fixed;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .about-card {
   width: min(920px, 100%);
-  background: rgba(255,255,255,.48);
-  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.22);
   border-radius: 28px;
-  box-shadow: 0 24px 80px rgba(0,0,0,.24);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 24px 80px rgba(0,0,0,.18);
+  backdrop-filter: blur(2px);
   overflow: hidden;
   animation: fadeIn .35s ease both;
 }
 [data-theme="dark"] .about-card {
-  background: rgba(22,27,34,.52);
-  border-color: rgba(255,255,255,.08);
+  background: rgba(22,27,34,.14);
+  border-color: rgba(255,255,255,.16);
 }
 .about-hero {
   padding: 44px 38px 28px;
   text-align: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255,255,255,.2);
+}
+.about-avatar-wrap {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 20px;
+}
+.about-avatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid rgba(255,255,255,.86);
+  box-shadow: 0 14px 36px rgba(0,0,0,.22);
 }
 .about-title {
   font-size: 34px;
@@ -313,10 +469,11 @@ body {
   padding: 28px 34px 36px;
 }
 .about-info-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,.26);
+  border: 1px solid rgba(255,255,255,.26);
   border-radius: 18px;
   padding: 20px;
+  backdrop-filter: blur(2px);
 }
 .about-info-label {
   font-size: 12px;
@@ -378,10 +535,13 @@ body {
   .hero h1 { font-size: 22px; }
   .aword-card { align-items: flex-start; flex-direction: column; text-align: left; }
   .tool-header, .tool-body { padding-left: 14px; padding-right: 14px; }
-  .anime-random-actions { align-items: flex-start; flex-direction: column; }
-  .anime-random-grid { grid-template-columns: 1fr; }
-  .anime-img-box { min-height: 260px; }
-  .anime-random-card img { height: 260px; }
+  .anime-random-wrap { padding: 16px; border-radius: 18px; }
+  .api-hero h2 { font-size: 23px; }
+  .api-stats { grid-template-columns: 1fr; }
+  .api-card-grid { grid-template-columns: 1fr; }
+  .api-preview-head { align-items: flex-start; flex-direction: column; }
+  .anime-img-box { min-height: 280px; }
+  .anime-img-box img { height: 280px; }
   .about-page { padding: 32px 14px; background-attachment: scroll; }
   .about-hero { padding: 34px 22px 24px; }
   .about-title { font-size: 28px; }
