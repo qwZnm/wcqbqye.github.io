@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFmpeg 工具箱 · 工具箱</title>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  if (typeof SharedArrayBuffer === 'undefined') {
+    window.SharedArrayBuffer = ArrayBuffer;
+  }
+</script>
 </head>
 <body>
 
@@ -107,6 +112,6 @@
 <footer class="footer"><p>工具箱 · FFmpeg 工具箱 · 单线程 WASM 内核</p></footer>
 <div class="toast" id="toast"></div>
 
-<script src="js/ffmpeg.js?v=20260805-core-st"></script>
+<script src="js/ffmpeg.js?v=20260805-core-st-blob"></script>
 </body>
 </html>

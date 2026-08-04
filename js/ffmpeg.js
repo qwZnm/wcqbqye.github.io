@@ -57,21 +57,69 @@ function loadScriptOnce(src) {
   });
 }
 
+async function fetchBlobURL(url, mimeType, progressStart, progressEnd, label) {
+  const res = await fetch(url, { cache: 'force-cache' });
+  if (!res.ok) throw new Error(`${label} 下载失败：${res.status}`);
+  const total = Number(res.headers.get('content-length')) || 0;
+  if (!res.body || !total) {
+    const blob = await res.blob();
+    setFFmpegProgress(progressEnd, `${label} 下载完成`);
+    return URL.createObjectURL(new Blob([blob], { type: mimeType }));
+  }
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    const ratio = received / total;
+    setFFmpegProgress(progressStart + (progressEnd - progressStart) * ratio, `正在下载 ${label}...`);
+  }
+  return URL.createObjectURL(new Blob(chunks, { type: mimeType }));
+}
+
+async function fetchCoreJSBlobURL(coreURL, wasmBlobURL) {
+  const res = await fetch(coreURL, { cache: 'force-cache' });
+  if (!res.ok) throw new Error(`FFmpeg core-st 脚本下载失败：${res.status}`);
+  let text = await res.text();
+  text = text.replace(
+    'var gb="ffmpeg-core.wasm";if(!hb()){var ib=gb;gb=e.locateFile?e.locateFile(ib,l):l+ib}',
+    `var gb=${JSON.stringify(wasmBlobURL)};function hb(){return true}`
+  );
+  if (!text.includes(wasmBlobURL)) {
+    text = text.replace('var gb="ffmpeg-core.wasm";', `var gb=${JSON.stringify(wasmBlobURL)};`);
+  }
+  setFFmpegProgress(55, 'FFmpeg core-st 脚本已准备完成');
+  return URL.createObjectURL(new Blob([text], { type: 'text/javascript' }));
+}
+
 async function ensureFFmpegLoaded() {
   if (ffmpegInstance) return ffmpegInstance;
   if (ffmpegLoadingPromise) return ffmpegLoadingPromise;
   ffmpegLoadingPromise = (async () => {
     setFFmpegProgress(8, '正在加载 ffmpeg-wasm 脚本...');
-    await loadScriptOnce('https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js');
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js');
     if (!window.FFmpeg) throw new Error('FFmpeg 对象不可用');
 
     const { createFFmpeg, fetchFile } = window.FFmpeg;
     ffmpegFetchFile = fetchFile;
-    setFFmpegProgress(25, '正在加载单线程 WASM 内核...');
+    setFFmpegProgress(15, '正在准备 core-st 单线程内核...');
+
+    const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.11.1/dist';
+    const wasmBlobURL = await fetchBlobURL(
+      `${coreBase}/ffmpeg-core.wasm`,
+      'application/wasm',
+      18,
+      48,
+      'ffmpeg-core-st.wasm'
+    );
+    const coreBlobURL = await fetchCoreJSBlobURL(`${coreBase}/ffmpeg-core.js`, wasmBlobURL);
 
     const ffmpeg = createFFmpeg({
       log: false,
-      corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+      corePath: coreBlobURL,
       progress: ({ ratio }) => {
         if (ratio > 0) setFFmpegProgress(30 + ratio * 65, 'FFmpeg 正在处理文件...');
       },
