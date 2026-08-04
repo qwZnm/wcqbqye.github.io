@@ -40,29 +40,29 @@ const toolTemplates = {
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>自动动漫</em></div>
             <h3>自适应二次元动漫</h3>
-            <p>随机返回横屏或竖屏动漫图。</p>
-            <code>https://api.sretna.cn/api/anime/auto</code>
+            <p>随机返回横屏或竖屏动漫图，先读取 JSON，再展示真实 CDN 图片。</p>
+            <code>https://api.sretna.cn/api/anime/auto?type=json</code>
             <button class="api-test-btn" onclick="testAnimeApi('auto')">试用生成</button>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>电脑动漫</em></div>
             <h3>电脑端二次元动漫</h3>
-            <p>二次元电脑图片，宽屏高清。</p>
-            <code>https://api.sretna.cn/api/anime/pc</code>
+            <p>二次元电脑图片，宽屏高清，适合横向预览。</p>
+            <code>https://api.sretna.cn/api/anime/pc?type=json</code>
             <button class="api-test-btn" onclick="testAnimeApi('pc')">试用生成</button>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>手机动漫</em></div>
             <h3>手机端二次元动漫</h3>
-            <p>二次元手机壁纸，竖版图片。</p>
-            <code>https://api.sretna.cn/api/anime/pe</code>
+            <p>二次元手机壁纸，竖版图片，适合移动端预览。</p>
+            <code>https://api.sretna.cn/api/anime/pe?type=json</code>
             <button class="api-test-btn" onclick="testAnimeApi('pe')">试用生成</button>
           </div>
           <div class="api-card">
             <div class="api-card-top"><span>已发布</span><em>动漫头像</em></div>
             <h3>头像端二次元动漫</h3>
-            <p>随机二次元方形头像。</p>
-            <code>https://api.sretna.cn/api/anime/tx</code>
+            <p>随机二次元方形头像，适合作为头像素材。</p>
+            <code>https://api.sretna.cn/api/anime/tx?type=json</code>
             <button class="api-test-btn" onclick="testAnimeApi('tx')">试用生成</button>
           </div>
         </div>
@@ -78,7 +78,7 @@ const toolTemplates = {
             <img id="animePreviewImg" alt="随机二次元图片" referrerpolicy="no-referrer">
             <div class="anime-img-status" id="animePreviewStatus">正在加载图片...</div>
           </div>
-          <code class="api-preview-code" id="animePreviewCode">https://api.sretna.cn/api/anime/auto</code>
+          <code class="api-preview-code" id="animePreviewCode">https://api.sretna.cn/api/anime/auto?type=json</code>
         </div>
       </div>`
   },
@@ -252,10 +252,10 @@ async function loadRandomAword() {
 
 // ===== Random Anime API Preview =====
 const animeApiMap = {
-  auto: { title: '自适应二次元动漫', url: 'https://api.sretna.cn/api/anime/auto' },
-  pc: { title: '电脑端二次元动漫', url: 'https://api.sretna.cn/api/anime/pc' },
-  pe: { title: '手机端二次元动漫', url: 'https://api.sretna.cn/api/anime/pe' },
-  tx: { title: '头像端二次元动漫', url: 'https://api.sretna.cn/api/anime/tx' }
+  auto: { title: '自适应二次元动漫', url: 'https://api.sretna.cn/api/anime/auto', displayUrl: 'https://api.sretna.cn/api/anime/auto?type=json' },
+  pc: { title: '电脑端二次元动漫', url: 'https://api.sretna.cn/api/anime/pc', displayUrl: 'https://api.sretna.cn/api/anime/pc?type=json' },
+  pe: { title: '手机端二次元动漫', url: 'https://api.sretna.cn/api/anime/pe', displayUrl: 'https://api.sretna.cn/api/anime/pe?type=json' },
+  tx: { title: '头像端二次元动漫', url: 'https://api.sretna.cn/api/anime/tx', displayUrl: 'https://api.sretna.cn/api/anime/tx?type=json' }
 };
 let currentAnimeApi = 'auto';
 
@@ -264,42 +264,35 @@ async function loadAnimeImage(imgId, statusId, apiUrl) {
   const status = document.getElementById(statusId);
   if (!img || !status) return;
 
-  const requestUrl = `${apiUrl}?t=${Date.now()}`;
+  const jsonUrl = `${apiUrl}?type=json&t=${Date.now()}`;
   img.removeAttribute('src');
   img.style.display = 'none';
   status.style.display = 'flex';
   status.textContent = '正在加载图片...';
 
-  const showImage = (url) => {
-    img.onload = () => {
-      status.style.display = 'none';
-      img.style.display = 'block';
-    };
-    img.onerror = () => {
-      img.style.display = 'none';
-      status.style.display = 'flex';
-      status.textContent = '图片加载失败，请点击“刷新图片”重试。';
-    };
-    img.src = url;
+  img.onload = () => {
+    status.style.display = 'none';
+    img.style.display = 'block';
+  };
+  img.onerror = () => {
+    img.style.display = 'none';
+    status.style.display = 'flex';
+    status.textContent = '图片加载失败，请点击“重新生成”重试。';
   };
 
   try {
-    const res = await fetch(requestUrl, { cache: 'no-store', redirect: 'follow' });
-    const contentType = res.headers.get('content-type') || '';
-    let imageUrl = res.url || requestUrl;
-
-    if (contentType.includes('application/json')) {
-      const data = await res.json();
-      imageUrl = data.url || data.img || data.image || data.data || imageUrl;
-    } else if (contentType.includes('text/')) {
-      const text = await res.text();
-      const match = text.match(/https?:\/\/[^\s"'<>]+/);
-      if (match) imageUrl = match[0];
+    const res = await fetch(jsonUrl, { cache: 'no-store' });
+    const data = await res.json();
+    if (!data || data.code !== '200' || !data.storage || !data.source || !data.sort || !data.image) {
+      throw new Error('接口返回数据不完整');
     }
-
-    showImage(imageUrl);
+    const imageType = data.type || 'webp';
+    const imageUrl = `https://${data.storage}/${data.source}/${data.sort}/${data.image}.${imageType}`;
+    img.src = imageUrl;
   } catch (err) {
-    showImage(requestUrl);
+    img.style.display = 'none';
+    status.style.display = 'flex';
+    status.textContent = '图片接口读取失败，请点击“重新生成”重试。';
   }
 }
 
@@ -309,7 +302,7 @@ function testAnimeApi(type) {
   const title = document.getElementById('animePreviewTitle');
   const code = document.getElementById('animePreviewCode');
   if (title) title.textContent = item.title;
-  if (code) code.textContent = item.url;
+  if (code) code.textContent = item.displayUrl;
   loadAnimeImage('animePreviewImg', 'animePreviewStatus', item.url);
 }
 
