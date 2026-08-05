@@ -2,6 +2,7 @@
 let toastTimer;
 let debounceTimer = null;
 let translateSeq = 0; // 用于丢弃过期的翻译请求
+let currentTranslateController = null; // 用于取消上一次还没结束的请求
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -64,6 +65,8 @@ function scheduleTranslate(delay = 500) {
   clearTimeout(debounceTimer);
   const input = document.getElementById('transInput');
   if (!input || !input.value.trim()) {
+    translateSeq++;
+    if (currentTranslateController) currentTranslateController.abort();
     const output = document.getElementById('transOutput');
     const status = document.getElementById('transStatus');
     if (output) output.value = '';
@@ -82,9 +85,19 @@ function getTranslateLangs(text) {
 }
 
 // ===== 翻译接口 =====
+async function fetchWithTimeout(url, options = {}, timeout = 4500) {
+  const controller = currentTranslateController;
+  const timer = setTimeout(() => controller?.abort(), timeout);
+  try {
+    return await fetch(url, { ...options, signal: controller?.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchGoogleTranslate(text, source, target) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetchWithTimeout(url, { cache: 'no-store' }, 4500);
   if (!res.ok) throw new Error(`翻译接口状态异常：${res.status}`);
   const data = await res.json();
   const translated = (data?.[0] || []).map(item => item?.[0] || '').join('');
@@ -97,7 +110,7 @@ async function fetchMyMemoryTranslate(text, source, target) {
   const from = langMap[source] || 'en';
   const to = langMap[target] || 'zh-CN';
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetchWithTimeout(url, { cache: 'no-store' }, 4500);
   if (!res.ok) throw new Error(`备用接口状态异常：${res.status}`);
   const data = await res.json();
   const translated = data?.responseData?.translatedText || '';
@@ -158,6 +171,8 @@ async function runTranslate() {
 
   // 增加序列号，丢弃过期的翻译结果（用户快速输入时只保留最后一次）
   const seq = ++translateSeq;
+  if (currentTranslateController) currentTranslateController.abort();
+  currentTranslateController = new AbortController();
   autoDetectAndHint();
   const { source, target } = getTranslateLangs(text);
   status.textContent = '正在翻译...';
@@ -171,6 +186,7 @@ async function runTranslate() {
   } catch (err) {
     if (seq !== translateSeq) return; // 已过期，丢弃
     try {
+      currentTranslateController = new AbortController();
       result = await fetchMyMemoryTranslate(text, source, target);
       usedApi = 'MyMemory';
     } catch (fallbackErr) {
@@ -181,7 +197,7 @@ async function runTranslate() {
       } else {
         if (seq !== translateSeq) return;
         output.value = '';
-        status.textContent = '翻译失败 · 接口可能限流，请稍后重试';
+        status.textContent = '翻译失败 · 接口超时或限流，请稍后重试';
         return;
       }
     }
@@ -192,6 +208,7 @@ async function runTranslate() {
   output.value = result;
   const srcLabel = source === 'auto' ? '自动识别' : source;
   status.textContent = `${srcLabel} → ${target} · ${usedApi}`;
+  currentTranslateController = null;
 }
 
 // ===== 交换语言 =====
@@ -218,6 +235,8 @@ function clearTranslator() {
   const output = document.getElementById('transOutput');
   const status = document.getElementById('transStatus');
   clearTimeout(debounceTimer);
+  translateSeq++;
+  if (currentTranslateController) currentTranslateController.abort();
   if (input) input.value = '';
   if (output) output.value = '';
   if (status) status.textContent = '等待输入...';
