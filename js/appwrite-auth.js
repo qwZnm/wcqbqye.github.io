@@ -36,6 +36,7 @@ function getAppwriteDatabases() {
 function openModal() {
   document.getElementById('modalOverlay').classList.add('show');
   document.body.style.overflow = 'hidden';
+  syncAuthUi();
 }
 
 function closeModal() {
@@ -52,16 +53,60 @@ function switchTab(mode) {
   const rf = document.querySelectorAll('.register-fields'), fr = document.getElementById('formRow');
   if (mode === 'login') {
     lt.classList.add('active'); rt.classList.remove('active');
-    t.textContent = '欢迎回来'; s.textContent = '登录以同步你的工具收藏'; b.textContent = '登 录';
+    t.textContent = '欢迎回来'; s.textContent = '使用 Appwrite 账号登录工具箱'; b.textContent = '登 录';
     ft.textContent = '还没有账号？'; fl.textContent = '立即注册'; fl.onclick = () => switchTab('register');
     fr.style.display = 'flex'; rf.forEach(f => f.classList.remove('show'));
   } else {
     rt.classList.add('active'); lt.classList.remove('active');
-    t.textContent = '创建账号'; s.textContent = '注册后可收藏常用工具'; b.textContent = '注 册';
+    t.textContent = '创建 Appwrite 用户'; s.textContent = 'User ID 自动生成，只需填写邮箱、密码和名称'; b.textContent = '创建用户';
     ft.textContent = '已有账号？'; fl.textContent = '去登录'; fl.onclick = () => switchTab('login');
     fr.style.display = 'none'; rf.forEach(f => f.classList.add('show'));
   }
   document.getElementById('errorMsg').classList.remove('show');
+  syncAuthUi();
+}
+
+function syncAuthUi() {
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const regName = document.getElementById('regName');
+  const regNameLabel = document.querySelector('#regNameField label');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('authForm');
+  if (!emailInput || !passwordInput || !form) return;
+
+  emailInput.placeholder = authMode === 'register' ? '用于登录和接收通知的邮箱' : '请输入邮箱';
+  emailInput.autocomplete = 'email';
+  passwordInput.placeholder = authMode === 'register' ? '至少 8 位密码' : '请输入密码';
+  passwordInput.minLength = authMode === 'register' ? 8 : 1;
+  passwordInput.autocomplete = authMode === 'register' ? 'new-password' : 'current-password';
+
+  if (regName) {
+    regName.placeholder = '最长 128 个字符，例如 Hivason';
+    regName.maxLength = 128;
+    regName.autocomplete = 'name';
+  }
+  if (regNameLabel) regNameLabel.textContent = '用户名称';
+
+  let note = document.getElementById('authRegisterNote');
+  if (!note) {
+    note = document.createElement('div');
+    note.id = 'authRegisterNote';
+    note.className = 'auth-register-note register-fields';
+    const firstField = form.querySelector('.form-group');
+    if (firstField) form.insertBefore(note, firstField);
+  }
+  note.innerHTML = `
+    <div class="auth-note-title">Appwrite 创建规则</div>
+    <div class="auth-note-grid">
+      <span>User ID</span><strong>自动生成</strong>
+      <span>Email</span><strong>邮箱登录</strong>
+      <span>Password</span><strong>至少 8 位</strong>
+      <span>Name</span><strong>最长 128 字符</strong>
+    </div>
+  `;
+  note.classList.toggle('show', authMode === 'register');
+  if (submitBtn && authMode === 'register') submitBtn.textContent = '创建用户';
 }
 
 async function handleAuth(e) {
@@ -70,7 +115,8 @@ async function handleAuth(e) {
   const password = document.getElementById('passwordInput').value;
   const submitBtn = document.getElementById('submitBtn');
   if (!email || !password) { showError('请填写完整信息'); return; }
-  if (password.length < 6) { showError('密码至少 6 位'); return; }
+  if (authMode === 'register' && password.length < 8) { showError('密码至少 8 位，需符合 Appwrite 用户创建规则'); return; }
+  if (authMode === 'login' && password.length < 1) { showError('请输入密码'); return; }
   if (!initAppwriteClient()) {
     showError('请先在 js/appwrite-config.js 填写 Appwrite Endpoint 和 Project ID');
     return;
@@ -82,6 +128,7 @@ async function handleAuth(e) {
       const regName = document.getElementById('regName').value.trim();
       const regConfirm = document.getElementById('regConfirm').value;
       if (!regName) { showError('请输入用户名'); return; }
+      if (regName.length > 128) { showError('用户名称不能超过 128 个字符'); return; }
       if (password !== regConfirm) { showError('两次密码不一致'); return; }
       await appwriteAccount.create(Appwrite.ID.unique(), email, password, regName);
       await appwriteAccount.createEmailPasswordSession(email, password);
@@ -96,7 +143,7 @@ async function handleAuth(e) {
     showError(getAppwriteErrorMessage(err, authMode === 'register' ? '注册失败' : '登录失败'));
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = authMode === 'register' ? '注 册' : '登 录';
+    submitBtn.textContent = authMode === 'register' ? '创建用户' : '登 录';
   }
 }
 
@@ -153,3 +200,4 @@ async function restoreAppwriteSession() {
 }
 
 restoreAppwriteSession();
+syncAuthUi();

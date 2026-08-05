@@ -653,6 +653,11 @@ body {
 .social-btn:hover { border-color: var(--primary); }
 .register-fields { display: none; }
 .register-fields.show { display: block; }
+.auth-register-note { margin: -2px 0 16px; padding: 12px; border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--primary) 7%, var(--card-bg)); }
+.auth-note-title { margin-bottom: 8px; color: var(--primary); font-size: 12px; font-weight: 700; }
+.auth-note-grid { display: grid; grid-template-columns: 78px 1fr; gap: 6px 10px; align-items: center; font-size: 11px; line-height: 1.35; }
+.auth-note-grid span { color: var(--text-sub); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.auth-note-grid strong { color: var(--text); font-weight: 600; }
 .error-msg { color: #ef4444; font-size: 12px; margin-top: 6px; display: none; }
 .error-msg.show { display: block; }
 
