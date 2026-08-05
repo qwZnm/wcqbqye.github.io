@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>字符串加解密 · 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+  <a class="back-btn" href="index.html" style="display:flex;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    返回首页
+  </a>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>工具箱</span>
+  </div>
+  <div class="header-actions" style="margin-left:auto;">
+    <button class="icon-btn" onclick="toggleTheme()" title="切换主题"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+  </div>
+</header>
+
+<div id="toolView" style="display:block;">
+  <div class="tool-header">
+    <div class="tool-header-row">
+      <div class="tool-title"><div class="tool-title-icon">🔐</div><span>字符串加解密</span></div>
+    </div>
+    <div class="tool-subtitle">Hash 在线加密 · Base64 编码解码 · URL 编码解码</div>
+  </div>
+  <div class="tool-body">
+    <div class="translator-wrap">
+      <div class="translator-toolbar">
+        <select id="cryptoMode" class="translator-select" onchange="updateCryptoMode()">
+          <option value="hash">Hash 加密</option>
+          <option value="base64-encode">Base64 编码</option>
+          <option value="base64-decode">Base64 解码</option>
+          <option value="url-encode">URL 编码</option>
+          <option value="url-decode">URL 解码</option>
+        </select>
+        <select id="hashType" class="translator-select">
+          <option value="md5">MD5</option>
+          <option value="sha1">SHA1</option>
+          <option value="sha256">SHA256</option>
+          <option value="sha512">SHA512</option>
+        </select>
+      </div>
+      <div class="translator-grid">
+        <div class="translator-panel">
+          <div class="translator-panel-head">
+            <span>原文</span>
+            <button class="link-btn" onclick="clearCrypto()">清空</button>
+          </div>
+          <textarea id="cryptoInput" class="translator-textarea" placeholder="输入要处理的字符串，例如：123456"></textarea>
+          <div class="translator-hint" id="cryptoHint">Hash 使用在线接口；Hash 结果不可逆，不能解密。</div>
+        </div>
+        <div class="translator-panel">
+          <div class="translator-panel-head">
+            <span>结果</span>
+            <button class="link-btn" onclick="copyCryptoResult()">复制结果</button>
+          </div>
+          <textarea id="cryptoOutput" class="translator-textarea translator-output" placeholder="点击处理后显示结果" readonly></textarea>
+          <div class="translator-hint" id="cryptoStatus">请选择功能并点击开始处理。</div>
+        </div>
+      </div>
+      <div class="translator-actions">
+        <button class="arrow-btn" onclick="runCrypto()">开始处理</button>
+        <button class="action-btn" onclick="fillCryptoDemo()">填入示例</button>
+      </div>
+      <div class="translator-note">
+        Hash 接口：<code>https://v2.xxapi.cn/api/hash</code>。Base64 / URL 编码解码在浏览器本地完成。
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer"><p>工具箱 · 字符串加解密</p></footer>
+<div class="toast" id="toast"></div>
+
+<script src="js/crypto.js"></script>
+</body>
+</html>

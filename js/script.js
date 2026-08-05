@@ -10,7 +10,7 @@ const tools = [
   { icon:'🎞️', name:'音视频工具箱', desc:'剪切音视频 · 音频转 WAV · 视频音频合并', tool:'media' },
   { icon:'🌐', name:'在线翻译', desc:'中英互译 · 自动识别 · 一键复制', tool:'translator' },
   { icon:'🕤', name:'时间戳转换', desc:'秒/毫秒互转 · 多时区切换', tool:'timestamp' },
-  { icon:'🧮', name:'计算器', desc:'基础 + 科学函数 · 百分比/括号/记忆', tool:'calculator' },
+  { icon:'🔐', name:'字符串加解密', desc:'Hash 加密 · Base64 编解码 · URL 编解码', tool:'crypto' },
   { icon:'{}', name:'JSON 格式化', desc:'语法高亮 · 格式化/压缩 · JSONPath 查询', tool:'json' },
 ];
 
@@ -80,7 +80,7 @@ const toolTemplates = {
   },
   imgcompress: { icon:'🗜️', title:'图片压缩', subtitle:'批量压缩 · JPG/PNG/WebP/AVIF', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   timestamp: { icon:'🕤', title:'时间戳转换', subtitle:'秒/毫秒互转 · 多时区切换', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
-  calculator: { icon:'🧮', title:'计算器', subtitle:'基础 + 科学函数 · 百分比/括号/记忆', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
+  crypto: { icon:'🔐', title:'字符串加解密', subtitle:'Hash 加密 · Base64 编解码 · URL 编解码', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">正在打开字符串加解密...</div>' },
   json: { icon:'{}', title:'JSON 格式化', subtitle:'语法高亮 · 格式化/压缩 · JSONPath 查询', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
 };
 
@@ -135,6 +135,12 @@ function openTool(toolId) {
   // 在线翻译已拆分为独立页面
   if (toolId === 'translator') {
     window.location.href = 'translator.html';
+    return;
+  }
+
+  // 字符串加解密已拆分为独立页面
+  if (toolId === 'crypto') {
+    window.location.href = 'crypto.html';
     return;
   }
 
