@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FFmpeg 工具箱 · 工具箱</title>
+<title>音视频工具箱 · 工具箱</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -25,21 +25,20 @@
 <div id="toolView" style="display:block;">
   <div class="tool-header">
     <div class="tool-header-row">
-      <div class="tool-title"><div class="tool-title-icon">🎞️</div><span>FFmpeg 工具箱</span></div>
+      <div class="tool-title"><div class="tool-title-icon">🎞️</div><span>音视频工具箱</span></div>
     </div>
-    <div class="tool-subtitle">core-st 单线程 ffmpeg-wasm 内核 · 无需 SharedArrayBuffer · github.io 可直接运行 · 建议处理 500MB 以内文件</div>
+    <div class="tool-subtitle">不使用 FFmpeg / ffmpeg-wasm · 使用浏览器原生 Web Audio、MediaRecorder、captureStream · 自动检测老浏览器</div>
   </div>
   <div class="tool-body">
     <div class="ffmpeg-wrap">
       <div class="ffmpeg-notice">
-        <strong>单线程内核说明</strong>
-        <p>本页使用纯单线程版 <code>@ffmpeg/core-st@0.11.1</code>，不依赖 pthread，不需要 SharedArrayBuffer，也不需要 COOP/COEP 等特殊 HTTP 响应头，适合直接部署到 GitHub Pages。</p>
-        <p>代价是处理速度比多线程版慢一些，但音频剪切、音频转格式、小视频剪切等任务完全够用。WASM 内存通常约 1-2GB，已设置 500MB 文件保护阈值，过大文件会直接拦截。</p>
-        <p>首次访问本页会下载约 20-30MB 的 WASM 内核文件，下面会显示加载进度；浏览器缓存后，第二次打开通常会更快。</p>
+        <strong>原生方案说明</strong>
+        <p>本页已移除 FFmpeg 与 ffmpeg-wasm，不再下载 WASM 内核，也不依赖服务器。音频剪切和转码使用 Web Audio API，视频剪切与音视频合并使用 MediaRecorder / captureStream。</p>
+        <p>为保证在 GitHub Pages 等静态环境可运行，视频相关功能统一输出 <code>WebM</code>；音频剪切和音频转格式输出 <code>WAV</code>。老浏览器会自动检测并提示不可用能力。</p>
       </div>
       <div class="ffmpeg-loader" id="ffmpegLoader">
         <div class="ffmpeg-loader-head">
-          <span id="ffmpegLoadText">正在准备加载单线程 FFmpeg 内核...</span>
+          <span id="ffmpegLoadText">正在检测浏览器能力...</span>
           <strong id="ffmpegLoadPercent">0%</strong>
         </div>
         <div class="ffmpeg-progress"><div id="ffmpegProgressFill"></div></div>
@@ -50,7 +49,7 @@
           <select id="ffmpegMode" class="translator-select" onchange="updateFFmpegMode()">
             <option value="cut-video">剪切视频</option>
             <option value="cut-audio">剪切音频</option>
-            <option value="audio-convert">音频转格式</option>
+            <option value="audio-convert">音频转 WAV</option>
             <option value="merge-av">视频音频合并</option>
           </select>
         </div>
@@ -58,12 +57,12 @@
           <label class="ffmpeg-file-card">
             <span id="ffmpegMainLabel">选择视频文件</span>
             <input type="file" id="ffmpegMainFile" accept="video/*">
-            <em id="ffmpegMainHint">支持 MP4 / MOV / WEBM 等常见视频</em>
+            <em id="ffmpegMainHint">支持浏览器可播放的视频，结果输出 WebM</em>
           </label>
           <label class="ffmpeg-file-card" id="ffmpegAudioBox" style="display:none;">
             <span>选择音频文件</span>
             <input type="file" id="ffmpegAudioFile" accept="audio/*">
-            <em>合并时会把该音频写入视频</em>
+            <em>合并时会把该音频作为新音轨</em>
           </label>
         </div>
         <div class="ffmpeg-time-row" id="ffmpegTimeRow">
@@ -79,18 +78,15 @@
         <div class="form-group" id="ffmpegFormatBox" style="display:none;">
           <label>输出格式</label>
           <select id="ffmpegFormat" class="translator-select">
-            <option value="mp3">MP3</option>
             <option value="wav">WAV</option>
-            <option value="aac">AAC</option>
-            <option value="ogg">OGG</option>
-            <option value="flac">FLAC</option>
           </select>
         </div>
         <div class="translator-actions">
           <button class="arrow-btn" onclick="runFFmpegTask()">开始处理</button>
           <button class="action-btn" onclick="resetFFmpegTool()">清空</button>
         </div>
-        <div class="ffmpeg-status" id="ffmpegStatus">正在加载单线程 FFmpeg 内核，请稍候。</div>
+        <div class="ffmpeg-status" id="ffmpegStatus">正在检测浏览器能力，请稍候。</div>
+        <div class="ffmpeg-status" id="ffmpegCompatStatus"></div>
         <div class="result-box" id="ffmpegResult">
           <div class="result-header">
             <span class="result-title">处理完成</span>
@@ -104,9 +100,9 @@
   </div>
 </div>
 
-<footer class="footer"><p>工具箱 · FFmpeg 工具箱 · 单线程 WASM 内核</p></footer>
+<footer class="footer"><p>工具箱 · 音视频工具箱 · 浏览器原生处理</p></footer>
 <div class="toast" id="toast"></div>
 
-<script src="js/ffmpeg.js?v=20260805-core-st-blob-worker"></script>
+<script src="js/native-media.js"></script>
 </body>
 </html>

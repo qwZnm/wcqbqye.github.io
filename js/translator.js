@@ -1,6 +1,5 @@
-// ===== 在线翻译独立页面脚本（实时翻译版）=====
+// ===== 在线翻译独立页面脚本（点击翻译版）=====
 let toastTimer;
-let debounceTimer = null;
 let translateSeq = 0; // 用于丢弃过期的翻译请求
 let currentTranslateController = null; // 用于取消上一次还没结束的请求
 
@@ -38,42 +37,16 @@ function autoDetectAndHint() {
   if (!input || !source || !target || !hint) return;
   const text = input.value.trim();
   if (!text || source.value !== 'auto') {
-    hint.textContent = '实时翻译 · 输入即翻译';
+    hint.textContent = '输入中文默认译为英文；输入英文默认译为中文。';
     return;
   }
   if (containsChinese(text)) {
     target.value = 'en';
-    hint.textContent = '检测到中文 → 自动译为英文';
+    hint.textContent = '检测到中文 → 将译为英文';
   } else {
     target.value = 'zh-CN';
-    hint.textContent = '检测到非中文 → 自动译为中文';
+    hint.textContent = '检测到非中文 → 将译为中文';
   }
-}
-
-// ===== 实时翻译入口（防抖 500ms）=====
-function onInputChange() {
-  autoDetectAndHint();
-  scheduleTranslate(500);
-}
-
-function onLangChange() {
-  autoDetectAndHint();
-  scheduleTranslate(200);
-}
-
-function scheduleTranslate(delay = 500) {
-  clearTimeout(debounceTimer);
-  const input = document.getElementById('transInput');
-  if (!input || !input.value.trim()) {
-    translateSeq++;
-    if (currentTranslateController) currentTranslateController.abort();
-    const output = document.getElementById('transOutput');
-    const status = document.getElementById('transStatus');
-    if (output) output.value = '';
-    if (status) status.textContent = '等待输入...';
-    return;
-  }
-  debounceTimer = setTimeout(() => runTranslate(), delay);
 }
 
 // ===== 语言选择 =====
@@ -84,7 +57,7 @@ function getTranslateLangs(text) {
   return containsChinese(text) ? { source: 'zh-CN', target: target || 'en' } : { source: 'auto', target: target || 'zh-CN' };
 }
 
-// ===== 翻译接口 =====
+// ===== 翻译接口（带超时控制）=====
 async function fetchWithTimeout(url, options = {}, timeout = 4500) {
   const controller = currentTranslateController;
   const timer = setTimeout(() => controller?.abort(), timeout);
@@ -155,7 +128,7 @@ function localFallbackTranslate(text, source, target) {
   return '';
 }
 
-// ===== 执行翻译（核心）=====
+// ===== 执行翻译（点击触发）=====
 async function runTranslate() {
   const input = document.getElementById('transInput');
   const output = document.getElementById('transOutput');
@@ -164,18 +137,17 @@ async function runTranslate() {
 
   const text = input.value.trim();
   if (!text) {
-    output.value = '';
-    status.textContent = '等待输入...';
+    showToast('请输入要翻译的内容');
     return;
   }
 
-  // 增加序列号，丢弃过期的翻译结果（用户快速输入时只保留最后一次）
   const seq = ++translateSeq;
   if (currentTranslateController) currentTranslateController.abort();
   currentTranslateController = new AbortController();
   autoDetectAndHint();
   const { source, target } = getTranslateLangs(text);
   status.textContent = '正在翻译...';
+  output.value = '';
 
   let result = '';
   let usedApi = '';
@@ -184,7 +156,7 @@ async function runTranslate() {
     result = await fetchGoogleTranslate(text, source, target);
     usedApi = 'Google';
   } catch (err) {
-    if (seq !== translateSeq) return; // 已过期，丢弃
+    if (seq !== translateSeq) return;
     try {
       currentTranslateController = new AbortController();
       result = await fetchMyMemoryTranslate(text, source, target);
@@ -203,7 +175,6 @@ async function runTranslate() {
     }
   }
 
-  // 只有最新的请求才写入结果
   if (seq !== translateSeq) return;
   output.value = result;
   const srcLabel = source === 'auto' ? '自动识别' : source;
@@ -224,9 +195,9 @@ function swapTranslateLangs() {
   target.value = oldSource;
   if (output.value) {
     input.value = output.value;
+    output.value = '';
   }
   autoDetectAndHint();
-  scheduleTranslate(200);
 }
 
 // ===== 清空 =====
@@ -234,12 +205,11 @@ function clearTranslator() {
   const input = document.getElementById('transInput');
   const output = document.getElementById('transOutput');
   const status = document.getElementById('transStatus');
-  clearTimeout(debounceTimer);
   translateSeq++;
   if (currentTranslateController) currentTranslateController.abort();
   if (input) input.value = '';
   if (output) output.value = '';
-  if (status) status.textContent = '等待输入...';
+  if (status) status.textContent = '点击下方按钮开始翻译。';
   autoDetectAndHint();
 }
 
@@ -263,7 +233,7 @@ function fillTranslateDemo() {
   if (!input) return;
   input.value = '你好，欢迎使用在线翻译工具。';
   input.focus();
-  onInputChange();
+  autoDetectAndHint();
 }
 
 // ===== 初始化 =====
