@@ -27,13 +27,11 @@
     <div class="tool-header-row">
       <div class="tool-title"><div class="tool-title-icon">🎞️</div><span>音视频工具箱</span></div>
     </div>
-    <div class="tool-subtitle">不使用 FFmpeg / ffmpeg-wasm · 使用浏览器原生 Web Audio、MediaRecorder、captureStream · 自动检测老浏览器</div>
   </div>
   <div class="tool-body">
     <div class="ffmpeg-wrap">
       <div class="ffmpeg-notice">
         <strong>原生方案说明</strong>
-        <p>本页已移除 FFmpeg 与 ffmpeg-wasm，不再下载 WASM 内核，也不依赖服务器。音频剪切和转码使用 Web Audio API，视频剪切与音视频合并使用 MediaRecorder / captureStream。</p>
         <p>为保证在 GitHub Pages 等静态环境可运行，视频相关功能统一输出 <code>WebM</code>；音频剪切和音频转格式输出 <code>WAV</code>。老浏览器会自动检测并提示不可用能力。</p>
       </div>
       <div class="ffmpeg-loader" id="ffmpegLoader">
