@@ -1,5 +1,7 @@
-// ===== 在线翻译独立页面脚本 =====
+// ===== 在线翻译独立页面脚本（实时翻译版）=====
 let toastTimer;
+let debounceTimer = null;
+let translateSeq = 0; // 用于丢弃过期的翻译请求
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -26,7 +28,8 @@ function containsChinese(text) {
   return /[\u4e00-\u9fff]/.test(text);
 }
 
-function translatorAutoHint() {
+// ===== 语言自动检测与提示 =====
+function autoDetectAndHint() {
   const input = document.getElementById('transInput');
   const source = document.getElementById('transSourceLang');
   const target = document.getElementById('transTargetLang');
@@ -34,18 +37,43 @@ function translatorAutoHint() {
   if (!input || !source || !target || !hint) return;
   const text = input.value.trim();
   if (!text || source.value !== 'auto') {
-    hint.textContent = '输入中文会默认译为英文；输入英文会默认译为中文。';
+    hint.textContent = '实时翻译 · 输入即翻译';
     return;
   }
   if (containsChinese(text)) {
     target.value = 'en';
-    hint.textContent = '检测到中文，已自动设置为译成英文。';
+    hint.textContent = '检测到中文 → 自动译为英文';
   } else {
     target.value = 'zh-CN';
-    hint.textContent = '检测到非中文，已自动设置为译成中文。';
+    hint.textContent = '检测到非中文 → 自动译为中文';
   }
 }
 
+// ===== 实时翻译入口（防抖 500ms）=====
+function onInputChange() {
+  autoDetectAndHint();
+  scheduleTranslate(500);
+}
+
+function onLangChange() {
+  autoDetectAndHint();
+  scheduleTranslate(200);
+}
+
+function scheduleTranslate(delay = 500) {
+  clearTimeout(debounceTimer);
+  const input = document.getElementById('transInput');
+  if (!input || !input.value.trim()) {
+    const output = document.getElementById('transOutput');
+    const status = document.getElementById('transStatus');
+    if (output) output.value = '';
+    if (status) status.textContent = '等待输入...';
+    return;
+  }
+  debounceTimer = setTimeout(() => runTranslate(), delay);
+}
+
+// ===== 语言选择 =====
 function getTranslateLangs(text) {
   const source = document.getElementById('transSourceLang')?.value || 'auto';
   const target = document.getElementById('transTargetLang')?.value || 'zh-CN';
@@ -53,6 +81,7 @@ function getTranslateLangs(text) {
   return containsChinese(text) ? { source: 'zh-CN', target: target || 'en' } : { source: 'auto', target: target || 'zh-CN' };
 }
 
+// ===== 翻译接口 =====
 async function fetchGoogleTranslate(text, source, target) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
   const res = await fetch(url, { cache: 'no-store' });
@@ -76,45 +105,24 @@ async function fetchMyMemoryTranslate(text, source, target) {
   return translated;
 }
 
+// ===== 本地兜底词典 =====
 function localFallbackTranslate(text, source, target) {
   const normalized = text.trim().toLowerCase();
   const zhToEn = {
-    '你好': 'Hello',
-    '你好，世界': 'Hello, world',
-    '世界': 'World',
-    '欢迎': 'Welcome',
-    '欢迎使用': 'Welcome to use',
-    '翻译': 'Translate',
-    '在线翻译': 'Online translation',
-    '工具': 'Tool',
-    '工具箱': 'Toolbox',
-    '谢谢': 'Thank you',
-    '早上好': 'Good morning',
-    '晚上好': 'Good evening',
-    '再见': 'Goodbye',
-    '我爱你': 'I love you',
-    '中国': 'China',
-    '英文': 'English',
-    '中文': 'Chinese'
+    '你好': 'Hello', '你好，世界': 'Hello, world', '世界': 'World',
+    '欢迎': 'Welcome', '欢迎使用': 'Welcome to use', '翻译': 'Translate',
+    '在线翻译': 'Online translation', '工具': 'Tool', '工具箱': 'Toolbox',
+    '谢谢': 'Thank you', '早上好': 'Good morning', '晚上好': 'Good evening',
+    '再见': 'Goodbye', '我爱你': 'I love you', '中国': 'China',
+    '英文': 'English', '中文': 'Chinese'
   };
   const enToZh = {
-    'hello': '你好',
-    'hello, world': '你好，世界',
-    'world': '世界',
-    'welcome': '欢迎',
-    'translate': '翻译',
-    'translation': '翻译',
-    'online translation': '在线翻译',
-    'tool': '工具',
-    'toolbox': '工具箱',
-    'thank you': '谢谢',
-    'good morning': '早上好',
-    'good evening': '晚上好',
-    'goodbye': '再见',
-    'i love you': '我爱你',
-    'china': '中国',
-    'english': '英文',
-    'chinese': '中文'
+    'hello': '你好', 'hello, world': '你好，世界', 'world': '世界',
+    'welcome': '欢迎', 'translate': '翻译', 'translation': '翻译',
+    'online translation': '在线翻译', 'tool': '工具', 'toolbox': '工具箱',
+    'thank you': '谢谢', 'good morning': '早上好', 'good evening': '晚上好',
+    'goodbye': '再见', 'i love you': '我爱你', 'china': '中国',
+    'english': '英文', 'chinese': '中文'
   };
   if ((target === 'en' || (!target && containsChinese(text))) && zhToEn[text.trim()]) return zhToEn[text.trim()];
   if ((target === 'zh-CN' || source === 'en') && enToZh[normalized]) return enToZh[normalized];
@@ -134,42 +142,59 @@ function localFallbackTranslate(text, source, target) {
   return '';
 }
 
+// ===== 执行翻译（核心）=====
 async function runTranslate() {
   const input = document.getElementById('transInput');
   const output = document.getElementById('transOutput');
   const status = document.getElementById('transStatus');
   if (!input || !output || !status) return;
+
   const text = input.value.trim();
   if (!text) {
-    showToast('请输入要翻译的内容');
+    output.value = '';
+    status.textContent = '等待输入...';
     return;
   }
-  translatorAutoHint();
+
+  // 增加序列号，丢弃过期的翻译结果（用户快速输入时只保留最后一次）
+  const seq = ++translateSeq;
+  autoDetectAndHint();
   const { source, target } = getTranslateLangs(text);
   status.textContent = '正在翻译...';
-  output.value = '';
+
+  let result = '';
+  let usedApi = '';
+
   try {
-    output.value = await fetchGoogleTranslate(text, source, target);
-    status.textContent = `翻译完成：${source === 'auto' ? '自动识别' : source} → ${target}`;
+    result = await fetchGoogleTranslate(text, source, target);
+    usedApi = 'Google';
   } catch (err) {
+    if (seq !== translateSeq) return; // 已过期，丢弃
     try {
-      output.value = await fetchMyMemoryTranslate(text, source, target);
-      status.textContent = '翻译完成：已使用备用接口。';
+      result = await fetchMyMemoryTranslate(text, source, target);
+      usedApi = 'MyMemory';
     } catch (fallbackErr) {
       const localResult = localFallbackTranslate(text, source, target);
       if (localResult) {
-        output.value = localResult;
-        status.textContent = '在线接口受限，已使用本地兜底词典。更完整翻译可使用 python/translator.py 命令行版。';
-        showToast('已使用本地兜底翻译');
+        result = localResult;
+        usedApi = '本地词典';
       } else {
+        if (seq !== translateSeq) return;
         output.value = '';
-        status.textContent = '在线翻译失败，可能是接口限流或网络限制。可使用 python/translator.py 命令行版重试。';
-        showToast('翻译失败，请稍后重试');
+        status.textContent = '翻译失败 · 接口可能限流，请稍后重试';
+        return;
       }
     }
   }
+
+  // 只有最新的请求才写入结果
+  if (seq !== translateSeq) return;
+  output.value = result;
+  const srcLabel = source === 'auto' ? '自动识别' : source;
+  status.textContent = `${srcLabel} → ${target} · ${usedApi}`;
 }
 
+// ===== 交换语言 =====
 function swapTranslateLangs() {
   const source = document.getElementById('transSourceLang');
   const target = document.getElementById('transTargetLang');
@@ -182,21 +207,24 @@ function swapTranslateLangs() {
   target.value = oldSource;
   if (output.value) {
     input.value = output.value;
-    output.value = '';
   }
-  translatorAutoHint();
+  autoDetectAndHint();
+  scheduleTranslate(200);
 }
 
+// ===== 清空 =====
 function clearTranslator() {
   const input = document.getElementById('transInput');
   const output = document.getElementById('transOutput');
   const status = document.getElementById('transStatus');
+  clearTimeout(debounceTimer);
   if (input) input.value = '';
   if (output) output.value = '';
-  if (status) status.textContent = '在线翻译会优先使用浏览器可访问的翻译接口。';
-  translatorAutoHint();
+  if (status) status.textContent = '等待输入...';
+  autoDetectAndHint();
 }
 
+// ===== 复制 =====
 function copyTranslation() {
   const output = document.getElementById('transOutput');
   if (!output || !output.value) {
@@ -210,13 +238,16 @@ function copyTranslation() {
   });
 }
 
+// ===== 填入示例 =====
 function fillTranslateDemo() {
   const input = document.getElementById('transInput');
   if (!input) return;
   input.value = '你好，欢迎使用在线翻译工具。';
-  translatorAutoHint();
+  input.focus();
+  onInputChange();
 }
 
+// ===== 初始化 =====
 function initTranslatorPage() {
   const savedTheme = localStorage.getItem('toolbox_theme') || 'light';
   if (savedTheme === 'dark') {

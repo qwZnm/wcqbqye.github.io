@@ -33,7 +33,7 @@
   <div class="tool-body">
     <div class="translator-wrap">
       <div class="translator-toolbar">
-        <select id="transSourceLang" class="translator-select">
+        <select id="transSourceLang" class="translator-select" onchange="onLangChange()">
           <option value="auto">自动识别</option>
           <option value="zh-CN">中文</option>
           <option value="en">英文</option>
@@ -43,7 +43,7 @@
           <option value="de">德文</option>
         </select>
         <button class="translator-swap" onclick="swapTranslateLangs()" title="交换语言">⇄</button>
-        <select id="transTargetLang" class="translator-select">
+        <select id="transTargetLang" class="translator-select" onchange="scheduleTranslate()">
           <option value="en">英文</option>
           <option value="zh-CN">中文</option>
           <option value="ja">日文</option>
@@ -58,24 +58,23 @@
             <span>原文</span>
             <button class="link-btn" onclick="clearTranslator()">清空</button>
           </div>
-          <textarea id="transInput" class="translator-textarea" placeholder="输入要翻译的文本，例如：你好 / hello" oninput="translatorAutoHint()"></textarea>
-          <div class="translator-hint" id="transHint">输入中文会默认译为英文；输入英文会默认译为中文。</div>
+          <textarea id="transInput" class="translator-textarea" placeholder="输入要翻译的文本，例如：你好 / hello" oninput="onInputChange()"></textarea>
+          <div class="translator-hint" id="transHint">实时翻译 · 输入即翻译</div>
         </div>
         <div class="translator-panel">
           <div class="translator-panel-head">
             <span>译文</span>
             <button class="link-btn" onclick="copyTranslation()">复制结果</button>
           </div>
-          <textarea id="transOutput" class="translator-textarea translator-output" placeholder="翻译结果会显示在这里" readonly></textarea>
-          <div class="translator-hint" id="transStatus">在线翻译会优先使用浏览器可访问的翻译接口。</div>
+          <textarea id="transOutput" class="translator-textarea translator-output" placeholder="翻译结果会实时显示在这里" readonly></textarea>
+          <div class="translator-hint" id="transStatus">等待输入...</div>
         </div>
       </div>
       <div class="translator-actions">
-        <button class="arrow-btn" onclick="runTranslate()">开始翻译</button>
-        <button class="action-btn" onclick="fillTranslateDemo()">示例</button>
+        <button class="action-btn" onclick="fillTranslateDemo()">填入示例</button>
       </div>
       <div class="translator-note">
-        前端使用在线翻译接口，命令行版已放在 <code>python/translator.py</code>。
+        实时翻译 · 输入即翻译 · 在线接口不可用时自动切换本地词典。命令行版已放在 <code>python/translator.py</code>。
       </div>
     </div>
   </div>
@@ -84,6 +83,6 @@
 <footer class="footer"><p>工具箱 · 在线翻译</p></footer>
 <div class="toast" id="toast"></div>
 
-<script src="js/translator.js?v=20260805-translator-page"></script>
+<script src="js/translator.js?v=20260805-realtime"></script>
 </body>
 </html>
