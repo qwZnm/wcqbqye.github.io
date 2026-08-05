@@ -112,8 +112,6 @@ function openTool(toolId) {
     return;
   }
 
-  if (!currentUser) { showToast('请先登录后使用工具'); openModal(); return; }
-
   // Base64 已拆分为独立页面，直接跳转
   if (toolId === 'base64') {
     window.location.href = 'base64.html';
