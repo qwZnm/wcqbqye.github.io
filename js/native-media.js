@@ -1,5 +1,5 @@
 // ===== 浏览器原生音视频工具 =====
-// 不使用 FFmpeg / ffmpeg-wasm；仅使用 Web Audio API、MediaRecorder、captureStream。
+// 仅使用 Web Audio API、MediaRecorder、captureStream。
 const NATIVE_MAX_FILE_SIZE = 500 * 1024 * 1024;
 let toastTimer;
 let supportInfo = null;
@@ -26,9 +26,9 @@ function toggleTheme() {
 }
 
 function setNativeProgress(percent, text) {
-  const fill = document.getElementById('ffmpegProgressFill');
-  const label = document.getElementById('ffmpegLoadText');
-  const num = document.getElementById('ffmpegLoadPercent');
+  const fill = document.getElementById('mediaProgressFill');
+  const label = document.getElementById('mediaLoadText');
+  const num = document.getElementById('mediaLoadPercent');
   const value = Math.max(0, Math.min(100, Math.round(percent)));
   if (fill) fill.style.width = `${value}%`;
   if (label && text) label.textContent = text;
@@ -36,7 +36,7 @@ function setNativeProgress(percent, text) {
 }
 
 function setNativeStatus(text) {
-  const status = document.getElementById('ffmpegStatus');
+  const status = document.getElementById('mediaStatus');
   if (status) status.textContent = text;
 }
 
@@ -78,7 +78,7 @@ function renderBrowserSupport() {
     ['WebM 音频录制', supportInfo.webmAudio]
   ];
   const missing = items.filter(([, ok]) => !ok).map(([name]) => name);
-  const compat = document.getElementById('ffmpegCompatStatus');
+  const compat = document.getElementById('mediaCompatStatus');
   if (compat) {
     compat.innerHTML = items.map(([name, ok]) => `${ok ? '✅' : '⚠️'} ${name}`).join('　');
   }
@@ -114,14 +114,14 @@ function assertNativeFileSize(files) {
   }
 }
 
-function updateFFmpegMode() {
-  const mode = document.getElementById('ffmpegMode')?.value || 'cut-video';
-  const mainInput = document.getElementById('ffmpegMainFile');
-  const mainLabel = document.getElementById('ffmpegMainLabel');
-  const mainHint = document.getElementById('ffmpegMainHint');
-  const audioBox = document.getElementById('ffmpegAudioBox');
-  const timeRow = document.getElementById('ffmpegTimeRow');
-  const formatBox = document.getElementById('ffmpegFormatBox');
+function updateMediaMode() {
+  const mode = document.getElementById('mediaMode')?.value || 'cut-video';
+  const mainInput = document.getElementById('mediaMainFile');
+  const mainLabel = document.getElementById('mediaMainLabel');
+  const mainHint = document.getElementById('mediaMainHint');
+  const audioBox = document.getElementById('mediaAudioBox');
+  const timeRow = document.getElementById('mediaTimeRow');
+  const formatBox = document.getElementById('mediaFormatBox');
   if (!mainInput || !mainLabel || !mainHint || !audioBox || !timeRow || !formatBox) return;
 
   audioBox.style.display = mode === 'merge-av' ? 'block' : 'none';
@@ -231,8 +231,8 @@ function recordStream(stream, durationMs, mimeType) {
 async function cutAudio(file) {
   setNativeStatus('正在解码音频...');
   setNativeProgress(20, '正在解码音频...');
-  const start = parseTimeToSeconds(document.getElementById('ffmpegStart')?.value, 0);
-  const end = parseTimeToSeconds(document.getElementById('ffmpegEnd')?.value, 0);
+  const start = parseTimeToSeconds(document.getElementById('mediaStart')?.value, 0);
+  const end = parseTimeToSeconds(document.getElementById('mediaEnd')?.value, 0);
   const audioBuffer = await decodeAudioFile(file);
   setNativeProgress(55, '正在剪切音频...');
   const sliced = sliceAudioBuffer(audioBuffer, start, end || audioBuffer.duration);
@@ -269,8 +269,8 @@ async function cutVideo(file) {
   document.body.appendChild(video);
   const objectUrl = await loadMediaElement(video, file);
   try {
-    const start = parseTimeToSeconds(document.getElementById('ffmpegStart')?.value, 0);
-    const end = parseTimeToSeconds(document.getElementById('ffmpegEnd')?.value, video.duration);
+    const start = parseTimeToSeconds(document.getElementById('mediaStart')?.value, 0);
+    const end = parseTimeToSeconds(document.getElementById('mediaEnd')?.value, video.duration);
     const safeStart = Math.max(0, Math.min(start, video.duration));
     const safeEnd = Math.max(safeStart + 0.3, Math.min(end || video.duration, video.duration));
     video.currentTime = safeStart;
@@ -351,8 +351,8 @@ async function mergeVideoAudio(videoFile, audioFile) {
 }
 
 function showResult(blob, name) {
-  const resultBox = document.getElementById('ffmpegResult');
-  const download = document.getElementById('ffmpegDownload');
+  const resultBox = document.getElementById('mediaResult');
+  const download = document.getElementById('mediaDownload');
   const url = URL.createObjectURL(blob);
   if (download) {
     download.href = url;
@@ -364,11 +364,11 @@ function showResult(blob, name) {
   setNativeStatus('处理完成，请点击下载结果。');
 }
 
-async function runFFmpegTask() {
-  const mode = document.getElementById('ffmpegMode')?.value || 'cut-video';
-  const mainFile = document.getElementById('ffmpegMainFile')?.files?.[0];
-  const audioFile = document.getElementById('ffmpegAudioFile')?.files?.[0];
-  const resultBox = document.getElementById('ffmpegResult');
+async function runMediaTask() {
+  const mode = document.getElementById('mediaMode')?.value || 'cut-video';
+  const mainFile = document.getElementById('mediaMainFile')?.files?.[0];
+  const audioFile = document.getElementById('mediaAudioFile')?.files?.[0];
+  const resultBox = document.getElementById('mediaResult');
   if (resultBox) resultBox.classList.remove('show');
 
   try {
@@ -394,15 +394,15 @@ async function runFFmpegTask() {
   }
 }
 
-function resetFFmpegTool() {
-  ['ffmpegMainFile', 'ffmpegAudioFile', 'ffmpegStart', 'ffmpegEnd'].forEach(id => {
+function resetMediaTool() {
+  ['mediaMainFile', 'mediaAudioFile', 'mediaStart', 'mediaEnd'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     if (el.type === 'file') el.value = '';
-    else el.value = id === 'ffmpegStart' ? '00:00:00' : '';
+    else el.value = id === 'mediaStart' ? '00:00:00' : '';
   });
-  const resultBox = document.getElementById('ffmpegResult');
-  const download = document.getElementById('ffmpegDownload');
+  const resultBox = document.getElementById('mediaResult');
+  const download = document.getElementById('mediaDownload');
   if (resultBox) resultBox.classList.remove('show');
   if (download) download.textContent = '💾 下载结果';
   renderBrowserSupport();
@@ -415,7 +415,7 @@ function initNativeMediaPage() {
     const icon = document.getElementById('themeIcon');
     if (icon) icon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
   }
-  updateFFmpegMode();
+  updateMediaMode();
   renderBrowserSupport();
 }
 

@@ -29,70 +29,70 @@
     </div>
   </div>
   <div class="tool-body">
-    <div class="ffmpeg-wrap">
-      <div class="ffmpeg-notice">
+    <div class="media-wrap">
+      <div class="media-notice">
         <strong>原生方案说明</strong>
         <p>为保证在 GitHub Pages 等静态环境可运行，视频相关功能统一输出 <code>WebM</code>；音频剪切和音频转格式输出 <code>WAV</code>。老浏览器会自动检测并提示不可用能力。</p>
       </div>
-      <div class="ffmpeg-loader" id="ffmpegLoader">
-        <div class="ffmpeg-loader-head">
-          <span id="ffmpegLoadText">正在检测浏览器能力...</span>
-          <strong id="ffmpegLoadPercent">0%</strong>
+      <div class="media-loader" id="mediaLoader">
+        <div class="media-loader-head">
+          <span id="mediaLoadText">正在检测浏览器能力...</span>
+          <strong id="mediaLoadPercent">0%</strong>
         </div>
-        <div class="ffmpeg-progress"><div id="ffmpegProgressFill"></div></div>
+        <div class="media-progress"><div id="mediaProgressFill"></div></div>
       </div>
-      <div class="ffmpeg-form">
+      <div class="media-form">
         <div class="form-group">
           <label>功能类型</label>
-          <select id="ffmpegMode" class="translator-select" onchange="updateFFmpegMode()">
+          <select id="mediaMode" class="translator-select" onchange="updateMediaMode()">
             <option value="cut-video">剪切视频</option>
             <option value="cut-audio">剪切音频</option>
             <option value="audio-convert">音频转 WAV</option>
             <option value="merge-av">视频音频合并</option>
           </select>
         </div>
-        <div class="ffmpeg-file-row">
-          <label class="ffmpeg-file-card">
-            <span id="ffmpegMainLabel">选择视频文件</span>
-            <input type="file" id="ffmpegMainFile" accept="video/*">
-            <em id="ffmpegMainHint">支持浏览器可播放的视频，结果输出 WebM</em>
+        <div class="media-file-row">
+          <label class="media-file-card">
+            <span id="mediaMainLabel">选择视频文件</span>
+            <input type="file" id="mediaMainFile" accept="video/*">
+            <em id="mediaMainHint">支持浏览器可播放的视频，结果输出 WebM</em>
           </label>
-          <label class="ffmpeg-file-card" id="ffmpegAudioBox" style="display:none;">
+          <label class="media-file-card" id="mediaAudioBox" style="display:none;">
             <span>选择音频文件</span>
-            <input type="file" id="ffmpegAudioFile" accept="audio/*">
+            <input type="file" id="mediaAudioFile" accept="audio/*">
             <em>合并时会把该音频作为新音轨</em>
           </label>
         </div>
-        <div class="ffmpeg-time-row" id="ffmpegTimeRow">
+        <div class="media-time-row" id="mediaTimeRow">
           <div class="form-group">
             <label>开始时间</label>
-            <input class="ffmpeg-input" id="ffmpegStart" value="00:00:00" placeholder="00:00:00">
+            <input class="media-input" id="mediaStart" value="00:00:00" placeholder="00:00:00">
           </div>
           <div class="form-group">
             <label>结束时间</label>
-            <input class="ffmpeg-input" id="ffmpegEnd" placeholder="例如 00:00:10">
+            <input class="media-input" id="mediaEnd" placeholder="例如 00:00:10">
           </div>
         </div>
-        <div class="form-group" id="ffmpegFormatBox" style="display:none;">
+        <div class="form-group" id="mediaFormatBox" style="display:none;">
           <label>输出格式</label>
-          <select id="ffmpegFormat" class="translator-select">
+          <select id="mediaFormat" class="translator-select">
             <option value="wav">WAV</option>
           </select>
         </div>
         <div class="translator-actions">
-          <button class="arrow-btn" onclick="runFFmpegTask()">开始处理</button>
-          <button class="action-btn" onclick="resetFFmpegTool()">清空</button>
+          <button class="arrow-btn" onclick="runMediaTask()">开始处理</button>
+          <button class="action-btn" onclick="resetMediaTool()">清空</button>
         </div>
-        <div class="ffmpeg-status" id="ffmpegStatus">正在检测浏览器能力，请稍候。</div>
-        <div class="result-box" id="ffmpegResult">
+        <div class="media-status" id="mediaStatus">正在检测浏览器能力，请稍候。</div>
+        <div class="result-box" id="mediaResult">
           <div class="result-header">
             <span class="result-title">处理完成</span>
             <div class="result-actions">
-              <a class="action-btn" id="ffmpegDownload" href="#" download>💾 下载结果</a>
+              <a class="action-btn" id="mediaDownload" href="#" download>💾 下载结果</a>
             </div>
           </div>
         </div>
-        <div class="ffmpeg-status" id="ffmpegCompatStatus"></div>
+        <div class="media-status" id="mediaCompatStatus"></div>
       </div>
     </div>
   </div>
