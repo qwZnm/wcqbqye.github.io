@@ -311,7 +311,6 @@ function escapeHtml(str) {
 }
 
 // ===== 登录弹窗与主题 =====
-let authMode = 'login';
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');

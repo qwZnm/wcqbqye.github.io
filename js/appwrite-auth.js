@@ -2,13 +2,15 @@
 let authMode = 'login';
 let appwriteClient = null;
 let appwriteAccount = null;
+let appwriteDatabases = null;
 
 function getAppwriteConfig() {
   const cfg = window.APPWRITE_CONFIG || {};
   const endpoint = (cfg.endpoint || '').trim();
   const projectId = (cfg.projectId || '').trim();
+  const databaseId = (cfg.databaseId || '').trim();
   if (!endpoint || !projectId || projectId.includes('请填写')) return null;
-  return { endpoint, projectId };
+  return { endpoint, projectId, databaseId };
 }
 
 function initAppwriteClient() {
@@ -19,7 +21,16 @@ function initAppwriteClient() {
     .setEndpoint(cfg.endpoint)
     .setProject(cfg.projectId);
   appwriteAccount = new Appwrite.Account(appwriteClient);
+  if (cfg.databaseId && Appwrite.Databases) {
+    appwriteDatabases = new Appwrite.Databases(appwriteClient, cfg.databaseId);
+  }
   return true;
+}
+
+// 获取 Databases 实例，供各页面读写用户数据使用
+function getAppwriteDatabases() {
+  if (!initAppwriteClient()) return null;
+  return appwriteDatabases;
 }
 
 function openModal() {
