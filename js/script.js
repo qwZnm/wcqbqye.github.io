@@ -6,7 +6,7 @@ const tools = [
   { icon:'🖼️', name:'读取图片信息', desc:'尺寸/格式 · EXIF 元数据 · GPS 信息', tool:'imginfo' },
   { icon:'🔠', name:'Base64 编解码', desc:'文本 ↔ Base64 · 文件 ↔ Base64 · UTF-8 安全', tool:'base64' },
   { icon:'🌸', name:'随机二次元图片', desc:'随机头像 · 随机动漫 · 一键刷新', tool:'qrcode' },
-  { icon:'🗜️', name:'图片压缩', desc:'批量压缩 · JPG/PNG/WebP/AVIF', tool:'imgcompress' },
+  { icon:'🎨', name:'网页绘画器', desc:'画笔涂鸦 · 图层编辑 · 调色板 · 图片导出', tool:'drawing' },
   { icon:'🎞️', name:'音视频工具箱', desc:'剪切音视频 · 音频转 WAV · 视频音频合并', tool:'media' },
   { icon:'🌐', name:'在线翻译', desc:'中英互译 · 自动识别 · 一键复制', tool:'translator' },
   { icon:'🕤', name:'时间戳转换', desc:'秒/毫秒互转 · 多时区切换', tool:'timestamp' },
@@ -78,7 +78,7 @@ const toolTemplates = {
         </div>
       </div>`
   },
-  imgcompress: { icon:'🗜️', title:'图片压缩', subtitle:'批量压缩 · JPG/PNG/WebP/AVIF', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
+  drawing: { icon:'🎨', title:'网页绘画器', subtitle:'画笔涂鸦 · 图层编辑 · 调色板 · 图片导出', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">正在打开网页绘画器...</div>' },
   timestamp: { icon:'🕤', title:'时间戳转换', subtitle:'秒/毫秒互转 · 多时区切换', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   crypto: { icon:'🔐', title:'字符串加解密', subtitle:'Hash 加密 · Base64 编解码 · URL 编解码', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">正在打开字符串加解密...</div>' },
   json: { icon:'{}', title:'JSON 格式化', subtitle:'语法高亮 · 格式化/压缩 · JSONPath 查询', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
@@ -129,6 +129,12 @@ function openTool(toolId) {
   // 音视频工具箱已拆分为独立页面，使用浏览器原生 API 处理
   if (toolId === 'media') {
     window.location.href = 'media.html';
+    return;
+  }
+
+  // 网页绘画器已拆分为独立页面
+  if (toolId === 'drawing') {
+    window.location.href = 'drawing.html';
     return;
   }
 

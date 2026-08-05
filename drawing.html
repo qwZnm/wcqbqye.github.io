@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>网页绘画器 · 工具箱</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/drawing.css">
+</head>
+<body>
+
+<header class="header">
+  <a class="back-btn drawing-back-btn" href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    返回首页
+  </a>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>工具箱</span>
+  </div>
+  <div class="header-actions drawing-header-actions">
+    <button class="icon-btn" onclick="toggleTheme()" title="切换主题"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+  </div>
+</header>
+
+<div id="toolView" class="drawing-tool-view">
+  <div class="tool-header">
+    <div class="tool-header-row">
+      <div class="tool-title"><div class="tool-title-icon">🎨</div><span>网页绘画器</span></div>
+    </div>
+    <div class="tool-subtitle">图层 · 调色板 · 马赛克 · 滤镜 · 裁剪 · 叠加画布</div>
+  </div>
+  <div class="tool-body">
+    <div class="drawing-page">
+      <div class="drawing-app">
+        <div class="drawing-header">
+          <h1>🎨 绘图板</h1>
+          <span class="sub">图层 · 叠加 · 放大</span>
+        </div>
+
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <canvas id="mainCanvas" width="800" height="800"></canvas>
+        </div>
+
+        <div class="row-slider">
+          <span>粗细</span>
+          <input type="range" id="brushSize" min="1" max="50" value="6">
+          <span class="val" id="sizeVal">6</span>
+          <span class="drawing-slider-spacer"></span>
+          <button id="zoomBtn" class="drawing-compact-btn">🔍</button>
+          <span class="zoom-info" id="zoomLevel">1.0x</span>
+          <button id="zoomLockBtn" class="drawing-compact-btn">🔒</button>
+          <button id="zoomResetBtn" class="drawing-compact-btn">↺</button>
+        </div>
+
+        <div class="hsl-row">
+          <span class="label">H</span><input type="range" id="hueSlider" min="0" max="360" value="0"><span class="val" id="hueVal">0</span>
+          <span class="label">S</span><input type="range" id="satSlider" min="0" max="100" value="100"><span class="val" id="satVal">100</span>
+          <span class="label">L</span><input type="range" id="lightSlider" min="0" max="100" value="50"><span class="val" id="lightVal">50</span>
+        </div>
+
+        <div class="color-section">
+          <div class="color-toggle" id="colorToggle">
+            <span>🎨 调色板 (150色)</span>
+            <span class="arrow" id="colorArrow">∧</span>
+          </div>
+          <div class="color-scroll" id="colorScroll"></div>
+        </div>
+
+        <div class="toolbar">
+          <button id="penBtn" class="active">✏️</button>
+          <button id="eraserBtn">🧹</button>
+          <button id="mosaicBtn">🔲</button>
+          <span class="sep">|</span>
+          <button id="undoBtn">↩</button>
+          <button id="clearBtn">🗑️</button>
+          <button id="saveBtn">💾</button>
+          <button id="uploadBtn">📤</button>
+          <span class="sep">|</span>
+          <button id="textBtn">🔤</button>
+          <button id="cropBtn">✂️</button>
+          <button id="overlayBtn">🔄</button>
+        </div>
+
+        <div class="filter-options">
+          <button id="filterNone" class="active">无</button>
+          <button id="filterGray">黑白</button>
+          <button id="filterSepia">复古</button>
+          <button id="filterBlur">模糊</button>
+          <button id="filterSharpen">锐化</button>
+          <button id="filterBright">亮度+</button>
+        </div>
+
+        <div class="layer-actions">
+          <button id="addLayerBtn">+添加</button>
+          <button id="deleteLayerBtn">✕删除</button>
+          <button id="moveUpBtn">↑上</button>
+          <button id="moveDownBtn">↓下</button>
+          <button id="mergeDownBtn">⬇合并</button>
+        </div>
+
+        <div class="layer-panel" id="layerPanel"></div>
+
+        <div class="drawing-author-footer">由回忆开发 · <span>🐧 1947993788</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 叠加画布弹窗 -->
+<div class="drawing-modal-overlay" id="overlayModal">
+  <div class="drawing-modal-box">
+    <button class="drawing-modal-close" id="overlayModalClose">&times;</button>
+    <h3 class="drawing-modal-title">🔄 叠加画布</h3>
+    <p class="drawing-modal-hint">在此独立画布上绘制，点击“确认叠加”合并到主画布</p>
+    <canvas id="overlayCanvas" width="400" height="400"></canvas>
+    <div class="toolbar-sm">
+      <button id="overlayPen">✏️</button>
+      <button id="overlayEraser">🧹</button>
+      <button id="overlayClear">🗑️</button>
+      <button id="overlayConfirm">✅ 确认叠加</button>
+      <button id="overlayCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<input class="drawing-file-input" type="file" id="fileInput" accept="image/*">
+
+<footer class="footer"><p>工具箱 · 网页绘画器 · 原作者：回忆</p></footer>
+<script src="js/drawing.js"></script>
+</body>
+</html>
