@@ -663,10 +663,7 @@ body {
 .about-page {
   min-height: calc(100vh - var(--header-h));
   padding: 64px 20px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(124,128,240,.30), transparent 32%),
-    radial-gradient(circle at 80% 10%, rgba(91,95,232,.20), transparent 28%),
-    linear-gradient(135deg, var(--bg), rgba(91,95,232,.10));
+  background: url("../images/about-bg.jpg") center / cover fixed;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -699,14 +696,8 @@ body {
   width: 132px;
   height: 132px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
   border: 5px solid rgba(255,255,255,.86);
-  background: linear-gradient(135deg, var(--primary-light), var(--primary));
-  color: #fff;
-  font-size: 54px;
-  font-weight: 900;
   box-shadow: 0 14px 36px rgba(0,0,0,.22);
 }
 .about-title {

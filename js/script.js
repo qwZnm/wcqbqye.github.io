@@ -8,7 +8,7 @@ const tools = [
   { icon:'🌸', name:'随机二次元图片', desc:'随机头像 · 随机动漫 · 一键刷新', tool:'qrcode' },
   { icon:'🗜️', name:'图片压缩', desc:'批量压缩 · JPG/PNG/WebP/AVIF', tool:'imgcompress' },
   { icon:'🎞️', name:'FFmpeg 工具箱', desc:'剪切音视频 · 音频转格式 · 视频音频合并', tool:'ffmpeg' },
-  { icon:'🌐', name:'在线翻译', desc:'中英互译 · 自动识别 · 一键复制', tool:'password' },
+  { icon:'🌐', name:'在线翻译', desc:'中英互译 · 自动识别 · 一键复制', tool:'translator' },
   { icon:'🕤', name:'时间戳转换', desc:'秒/毫秒互转 · 多时区切换', tool:'timestamp' },
   { icon:'🧮', name:'计算器', desc:'基础 + 科学函数 · 百分比/括号/记忆', tool:'calculator' },
   { icon:'{}', name:'JSON 格式化', desc:'语法高亮 · 格式化/压缩 · JSONPath 查询', tool:'json' },
@@ -79,59 +79,6 @@ const toolTemplates = {
       </div>`
   },
   imgcompress: { icon:'🗜️', title:'图片压缩', subtitle:'批量压缩 · JPG/PNG/WebP/AVIF', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
-  password: {
-    icon:'🌐',
-    title:'在线翻译',
-    subtitle:'基于上传的 Python 翻译脚本思路优化 · 自动识别中英文 · 支持中英互译',
-    render: () => `
-      <div class="translator-wrap">
-        <div class="translator-toolbar">
-          <select id="transSourceLang" class="translator-select">
-            <option value="auto">自动识别</option>
-            <option value="zh-CN">中文</option>
-            <option value="en">英文</option>
-            <option value="ja">日文</option>
-            <option value="ko">韩文</option>
-            <option value="fr">法文</option>
-            <option value="de">德文</option>
-          </select>
-          <button class="translator-swap" onclick="swapTranslateLangs()" title="交换语言">⇄</button>
-          <select id="transTargetLang" class="translator-select">
-            <option value="en">英文</option>
-            <option value="zh-CN">中文</option>
-            <option value="ja">日文</option>
-            <option value="ko">韩文</option>
-            <option value="fr">法文</option>
-            <option value="de">德文</option>
-          </select>
-        </div>
-        <div class="translator-grid">
-          <div class="translator-panel">
-            <div class="translator-panel-head">
-              <span>原文</span>
-              <button class="link-btn" onclick="clearTranslator()">清空</button>
-            </div>
-            <textarea id="transInput" class="translator-textarea" placeholder="输入要翻译的文本，例如：你好 / hello" oninput="translatorAutoHint()"></textarea>
-            <div class="translator-hint" id="transHint">输入中文会默认译为英文；输入英文会默认译为中文。</div>
-          </div>
-          <div class="translator-panel">
-            <div class="translator-panel-head">
-              <span>译文</span>
-              <button class="link-btn" onclick="copyTranslation()">复制结果</button>
-            </div>
-            <textarea id="transOutput" class="translator-textarea translator-output" placeholder="翻译结果会显示在这里" readonly></textarea>
-            <div class="translator-hint" id="transStatus">在线翻译会优先使用浏览器可访问的翻译接口。</div>
-          </div>
-        </div>
-        <div class="translator-actions">
-          <button class="arrow-btn" onclick="runTranslate()">开始翻译</button>
-          <button class="action-btn" onclick="fillTranslateDemo()">示例</button>
-        </div>
-        <div class="translator-note">
-          前端使用在线翻译接口，命令行版已放在 <code>python/translator.py</code>。
-        </div>
-      </div>`
-  },
   timestamp: { icon:'🕤', title:'时间戳转换', subtitle:'秒/毫秒互转 · 多时区切换', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   calculator: { icon:'🧮', title:'计算器', subtitle:'基础 + 科学函数 · 百分比/括号/记忆', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
   json: { icon:'{}', title:'JSON 格式化', subtitle:'语法高亮 · 格式化/压缩 · JSONPath 查询', render: () => '<div style="text-align:center;padding:60px 20px;color:var(--text-sub);">该工具正在开发中...</div>' },
@@ -140,9 +87,7 @@ const toolTemplates = {
 // ===== State =====
 let currentUser = null;
 let currentTool = null;
-const pythonSourceMap = {
-  password: { href: 'python/translator.py', filename: 'translator.py' }
-};
+const pythonSourceMap = {};
 
 // ===== Render Tools Grid =====
 function filterTools() {
@@ -184,6 +129,12 @@ function openTool(toolId) {
   // FFmpeg 已拆分为独立页面，进入页面即加载单线程 WASM 内核
   if (toolId === 'ffmpeg') {
     window.location.href = 'ffmpeg.html';
+    return;
+  }
+
+  // 在线翻译已拆分为独立页面
+  if (toolId === 'translator') {
+    window.location.href = 'translator.html';
     return;
   }
 
@@ -295,202 +246,6 @@ function toggleTheme() {
 // ===== Toast =====
 let toastTimer;
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2500); }
-
-// ===== Translator Tool =====
-function containsChinese(text) {
-  return /[\u4e00-\u9fff]/.test(text);
-}
-
-function translatorAutoHint() {
-  const input = document.getElementById('transInput');
-  const source = document.getElementById('transSourceLang');
-  const target = document.getElementById('transTargetLang');
-  const hint = document.getElementById('transHint');
-  if (!input || !source || !target || !hint) return;
-  const text = input.value.trim();
-  if (!text || source.value !== 'auto') {
-    hint.textContent = '输入中文会默认译为英文；输入英文会默认译为中文。';
-    return;
-  }
-  if (containsChinese(text)) {
-    target.value = 'en';
-    hint.textContent = '检测到中文，已自动设置为译成英文。';
-  } else {
-    target.value = 'zh-CN';
-    hint.textContent = '检测到非中文，已自动设置为译成中文。';
-  }
-}
-
-function getTranslateLangs(text) {
-  const source = document.getElementById('transSourceLang')?.value || 'auto';
-  const target = document.getElementById('transTargetLang')?.value || 'zh-CN';
-  if (source !== 'auto') return { source, target };
-  return containsChinese(text) ? { source: 'zh-CN', target: target || 'en' } : { source: 'auto', target: target || 'zh-CN' };
-}
-
-async function fetchGoogleTranslate(text, source, target) {
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`翻译接口状态异常：${res.status}`);
-  const data = await res.json();
-  const translated = (data?.[0] || []).map(item => item?.[0] || '').join('');
-  if (!translated) throw new Error('翻译结果为空');
-  return translated;
-}
-
-async function fetchMyMemoryTranslate(text, source, target) {
-  const langMap = { 'zh-CN': 'zh-CN', en: 'en', ja: 'ja', ko: 'ko', fr: 'fr', de: 'de', auto: containsChinese(text) ? 'zh-CN' : 'en' };
-  const from = langMap[source] || 'en';
-  const to = langMap[target] || 'zh-CN';
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`备用接口状态异常：${res.status}`);
-  const data = await res.json();
-  const translated = data?.responseData?.translatedText || '';
-  if (!translated) throw new Error('备用接口结果为空');
-  return translated;
-}
-
-function localFallbackTranslate(text, source, target) {
-  const normalized = text.trim().toLowerCase();
-  const zhToEn = {
-    '你好': 'Hello',
-    '你好，世界': 'Hello, world',
-    '世界': 'World',
-    '欢迎': 'Welcome',
-    '欢迎使用': 'Welcome to use',
-    '翻译': 'Translate',
-    '在线翻译': 'Online translation',
-    '工具': 'Tool',
-    '工具箱': 'Toolbox',
-    '谢谢': 'Thank you',
-    '早上好': 'Good morning',
-    '晚上好': 'Good evening',
-    '再见': 'Goodbye',
-    '我爱你': 'I love you',
-    '中国': 'China',
-    '英文': 'English',
-    '中文': 'Chinese'
-  };
-  const enToZh = {
-    'hello': '你好',
-    'hello, world': '你好，世界',
-    'world': '世界',
-    'welcome': '欢迎',
-    'translate': '翻译',
-    'translation': '翻译',
-    'online translation': '在线翻译',
-    'tool': '工具',
-    'toolbox': '工具箱',
-    'thank you': '谢谢',
-    'good morning': '早上好',
-    'good evening': '晚上好',
-    'goodbye': '再见',
-    'i love you': '我爱你',
-    'china': '中国',
-    'english': '英文',
-    'chinese': '中文'
-  };
-  if ((target === 'en' || (!target && containsChinese(text))) && zhToEn[text.trim()]) return zhToEn[text.trim()];
-  if ((target === 'zh-CN' || source === 'en') && enToZh[normalized]) return enToZh[normalized];
-  if (containsChinese(text)) {
-    let result = text;
-    Object.keys(zhToEn).sort((a, b) => b.length - a.length).forEach(key => {
-      result = result.replaceAll(key, zhToEn[key]);
-    });
-    if (result !== text) return result;
-  } else {
-    let result = normalized;
-    Object.keys(enToZh).sort((a, b) => b.length - a.length).forEach(key => {
-      result = result.replaceAll(key, enToZh[key]);
-    });
-    if (result !== normalized) return result;
-  }
-  return '';
-}
-
-async function runTranslate() {
-  const input = document.getElementById('transInput');
-  const output = document.getElementById('transOutput');
-  const status = document.getElementById('transStatus');
-  if (!input || !output || !status) return;
-  const text = input.value.trim();
-  if (!text) {
-    showToast('请输入要翻译的内容');
-    return;
-  }
-  translatorAutoHint();
-  const { source, target } = getTranslateLangs(text);
-  status.textContent = '正在翻译...';
-  output.value = '';
-  try {
-    output.value = await fetchGoogleTranslate(text, source, target);
-    status.textContent = `翻译完成：${source === 'auto' ? '自动识别' : source} → ${target}`;
-  } catch (err) {
-    try {
-      output.value = await fetchMyMemoryTranslate(text, source, target);
-      status.textContent = `翻译完成：已使用备用接口。`;
-    } catch (fallbackErr) {
-      const localResult = localFallbackTranslate(text, source, target);
-      if (localResult) {
-        output.value = localResult;
-        status.textContent = '在线接口受限，已使用本地兜底词典。更完整翻译可使用 python/translator.py 命令行版。';
-        showToast('已使用本地兜底翻译');
-      } else {
-        output.value = '';
-        status.textContent = '在线翻译失败，可能是接口限流或网络限制。可使用 python/translator.py 命令行版重试。';
-        showToast('翻译失败，请稍后重试');
-      }
-    }
-  }
-}
-
-function swapTranslateLangs() {
-  const source = document.getElementById('transSourceLang');
-  const target = document.getElementById('transTargetLang');
-  const input = document.getElementById('transInput');
-  const output = document.getElementById('transOutput');
-  if (!source || !target || !input || !output) return;
-  if (source.value === 'auto') source.value = containsChinese(input.value) ? 'zh-CN' : 'en';
-  const oldSource = source.value;
-  source.value = target.value;
-  target.value = oldSource;
-  if (output.value) {
-    input.value = output.value;
-    output.value = '';
-  }
-  translatorAutoHint();
-}
-
-function clearTranslator() {
-  const input = document.getElementById('transInput');
-  const output = document.getElementById('transOutput');
-  const status = document.getElementById('transStatus');
-  if (input) input.value = '';
-  if (output) output.value = '';
-  if (status) status.textContent = '在线翻译会优先使用浏览器可访问的翻译接口。';
-  translatorAutoHint();
-}
-
-function copyTranslation() {
-  const output = document.getElementById('transOutput');
-  if (!output || !output.value) {
-    showToast('没有可复制的译文');
-    return;
-  }
-  navigator.clipboard.writeText(output.value).then(() => showToast('译文已复制')).catch(() => {
-    output.select();
-    document.execCommand('copy');
-    showToast('译文已复制');
-  });
-}
-
-function fillTranslateDemo() {
-  const input = document.getElementById('transInput');
-  if (!input) return;
-  input.value = '你好，欢迎使用在线翻译工具。';
-  translatorAutoHint();
-}
 
 // ===== Random Aword =====
 async function loadRandomAword() {
