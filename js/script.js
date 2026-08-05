@@ -336,6 +336,15 @@ function init() {
   if (savedUser) loginUser(savedUser);
   filterTools();
   loadRandomAword();
+  preloadAboutImages();
+}
+
+// ===== 预加载作者页面图片（首页空闲时下载并缓存）=====
+function preloadAboutImages() {
+  ['images/about-bg.jpg', 'images/author-avatar.jpg'].forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
 }
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); if (currentTool) goHome(); } });
