@@ -7,7 +7,7 @@ const tools = [
   { icon:'🔠', name:'Base64 编解码', desc:'文本 ↔ Base64 · 文件 ↔ Base64 · UTF-8 安全', tool:'base64' },
   { icon:'🌸', name:'随机二次元图片', desc:'随机头像 · 随机动漫 · 一键刷新', tool:'qrcode' },
   { icon:'🗜️', name:'图片压缩', desc:'批量压缩 · JPG/PNG/WebP/AVIF', tool:'imgcompress' },
-  { icon:'🎞️', name:'FFmpeg 工具箱', desc:'剪切音视频 · 音频转格式 · 视频音频合并', tool:'ffmpeg' },
+  { icon:'🎞️', name:'音视频工具箱', desc:'剪切音视频 · 音频转 WAV · 视频音频合并', tool:'ffmpeg' },
   { icon:'🌐', name:'在线翻译', desc:'中英互译 · 自动识别 · 一键复制', tool:'translator' },
   { icon:'🕤', name:'时间戳转换', desc:'秒/毫秒互转 · 多时区切换', tool:'timestamp' },
   { icon:'🧮', name:'计算器', desc:'基础 + 科学函数 · 百分比/括号/记忆', tool:'calculator' },
@@ -126,7 +126,7 @@ function openTool(toolId) {
     return;
   }
 
-  // FFmpeg 已拆分为独立页面，进入页面即加载单线程 WASM 内核
+  // 音视频工具箱已拆分为独立页面，使用浏览器原生 API 处理
   if (toolId === 'ffmpeg') {
     window.location.href = 'ffmpeg.html';
     return;
