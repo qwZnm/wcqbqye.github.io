@@ -89,7 +89,7 @@
     <div class="tab-switch"><button class="active" id="loginTab" onclick="switchTab('login')">登录</button><button id="registerTab" onclick="switchTab('register')">注册</button></div>
     <form id="authForm" onsubmit="handleAuth(event)">
       <div class="form-group register-fields" id="regNameField"><label>用户名</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="regName" placeholder="请输入用户名"></div></div>
-      <div class="form-group"><label>邮箱 / 用户名</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><input type="text" id="emailInput" placeholder="请输入邮箱或用户名"></div></div>
+      <div class="form-group"><label>邮箱</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><input type="email" id="emailInput" placeholder="请输入邮箱"></div></div>
       <div class="form-group"><label>密码</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="passwordInput" placeholder="请输入密码"></div></div>
       <div class="form-group register-fields" id="regConfirmField"><label>确认密码</label><div class="input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="regConfirm" placeholder="请再次输入密码"></div></div>
       <div class="error-msg" id="errorMsg"></div>
@@ -129,6 +129,9 @@
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/appwrite@15"></script>
+<script src="js/appwrite-config.js"></script>
 <script src="js/imginfo.js"></script>
+<script src="js/appwrite-auth.js"></script>
 </body>
 </html>

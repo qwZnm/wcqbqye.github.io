@@ -88,6 +88,8 @@ const toolTemplates = {
 let currentUser = null;
 let currentTool = null;
 const pythonSourceMap = {};
+let appwriteClient = null;
+let appwriteAccount = null;
 
 // ===== Render Tools Grid =====
 function filterTools() {
@@ -199,46 +201,109 @@ function switchTab(mode) {
   else { rt.classList.add('active'); lt.classList.remove('active'); t.textContent='创建账号'; s.textContent='注册后可收藏常用工具'; b.textContent='注 册'; ft.textContent='已有账号？'; fl.textContent='去登录'; fl.onclick=()=>switchTab('login'); fr.style.display='none'; rf.forEach(f=>f.classList.add('show')); }
   document.getElementById('errorMsg').classList.remove('show');
 }
-function handleAuth(e) {
+function getAppwriteConfig() {
+  const cfg = window.APPWRITE_CONFIG || {};
+  const endpoint = (cfg.endpoint || '').trim();
+  const projectId = (cfg.projectId || '').trim();
+  if (!endpoint || !projectId || projectId.includes('请填写')) return null;
+  return { endpoint, projectId };
+}
+
+function initAppwriteClient() {
+  const cfg = getAppwriteConfig();
+  if (!cfg || !window.Appwrite) return false;
+  if (appwriteClient && appwriteAccount) return true;
+  appwriteClient = new Appwrite.Client()
+    .setEndpoint(cfg.endpoint)
+    .setProject(cfg.projectId);
+  appwriteAccount = new Appwrite.Account(appwriteClient);
+  return true;
+}
+
+async function handleAuth(e) {
   e.preventDefault();
   const email = document.getElementById('emailInput').value.trim(), password = document.getElementById('passwordInput').value;
+  const submitBtn = document.getElementById('submitBtn');
   if (!email || !password) { showError('请填写完整信息'); return; }
   if (password.length < 6) { showError('密码至少 6 位'); return; }
+  if (!initAppwriteClient()) {
+    showError('请先在 js/appwrite-config.js 填写 Appwrite Endpoint 和 Project ID');
+    return;
+  }
+  submitBtn.disabled = true;
+  submitBtn.textContent = authMode === 'register' ? '注册中...' : '登录中...';
   if (authMode === 'register') {
-    const regName = document.getElementById('regName').value.trim(), regConfirm = document.getElementById('regConfirm').value;
-    if (!regName) { showError('请输入用户名'); return; }
-    if (password !== regConfirm) { showError('两次密码不一致'); return; }
-    const users = JSON.parse(localStorage.getItem('toolbox_users') || '{}');
-    if (users[email]) { showError('该邮箱已注册'); return; }
-    users[email] = { name: regName, email, password };
-    localStorage.setItem('toolbox_users', JSON.stringify(users));
-    showToast('注册成功，已自动登录'); loginUser(regName);
+    try {
+      const regName = document.getElementById('regName').value.trim(), regConfirm = document.getElementById('regConfirm').value;
+      if (!regName) { showError('请输入用户名'); return; }
+      if (password !== regConfirm) { showError('两次密码不一致'); return; }
+      await appwriteAccount.create(Appwrite.ID.unique(), email, password, regName);
+      await appwriteAccount.createEmailPasswordSession(email, password);
+      const user = await appwriteAccount.get();
+      showToast('注册成功，已自动登录');
+      loginUser(user);
+    } catch (err) {
+      showError(getAppwriteErrorMessage(err, '注册失败'));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '注 册';
+    }
   } else {
-    const users = JSON.parse(localStorage.getItem('toolbox_users') || '{}');
-    const user = users[email] || users[email.toLowerCase()];
-    if (!user || user.password !== password) {
-      if (email === 'demo' && password === '123456') { showToast('登录成功'); loginUser('体验用户'); }
-      else { showError('邮箱或密码错误（试试 demo / 123456）'); }
-    } else { showToast('登录成功'); loginUser(user.name); }
+    try {
+      await appwriteAccount.createEmailPasswordSession(email, password);
+      const user = await appwriteAccount.get();
+      showToast('登录成功');
+      loginUser(user);
+    } catch (err) {
+      showError(getAppwriteErrorMessage(err, '登录失败'));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '登 录';
+    }
   }
 }
-function loginUser(name) {
-  currentUser = name;
+
+function getAppwriteErrorMessage(err, fallback) {
+  const msg = err?.message || fallback;
+  if (msg.includes('Invalid credentials')) return '邮箱或密码错误';
+  if (msg.includes('already exists')) return '该邮箱已注册';
+  if (msg.includes('Password')) return '密码格式不符合要求';
+  if (msg.includes('Network')) return '网络连接失败，请稍后重试';
+  return msg;
+}
+
+function loginUser(user) {
+  const name = user?.name || user?.email || String(user || '用户');
+  currentUser = user;
   document.getElementById('loginBtn').style.display = 'none';
   document.getElementById('userMenu').classList.add('show');
   document.getElementById('userName').textContent = name;
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
-  localStorage.setItem('toolbox_user', name);
   closeModal(); document.getElementById('authForm').reset();
 }
-function logout() {
+async function logout() {
   currentUser = null;
+  if (initAppwriteClient()) {
+    try { await appwriteAccount.deleteSession('current'); } catch (_) {}
+  }
   document.getElementById('loginBtn').style.display = 'flex';
   document.getElementById('userMenu').classList.remove('show');
-  localStorage.removeItem('toolbox_user'); showToast('已退出登录');
+  showToast('已退出登录');
 }
-function socialLogin(p) { showToast(`正在通过 ${p} 登录...`); setTimeout(()=>loginUser(p+'用户'), 800); }
+function socialLogin(p) { showToast(`${p} 登录需要先在 Appwrite 控制台配置 OAuth`); }
 function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = msg; el.classList.add('show'); }
+
+async function restoreAppwriteSession() {
+  if (!initAppwriteClient()) return;
+  try {
+    const user = await appwriteAccount.get();
+    loginUser(user);
+  } catch (_) {
+    currentUser = null;
+    document.getElementById('loginBtn').style.display = 'flex';
+    document.getElementById('userMenu').classList.remove('show');
+  }
+}
 
 // ===== Theme =====
 function toggleTheme() {
@@ -338,8 +403,7 @@ function init() {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('themeIcon').innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
   }
-  const savedUser = localStorage.getItem('toolbox_user');
-  if (savedUser) loginUser(savedUser);
+  restoreAppwriteSession();
   filterTools();
   loadRandomAword();
   preloadAboutImages();

@@ -312,59 +312,6 @@ function escapeHtml(str) {
 
 // ===== 登录弹窗与主题 =====
 let authMode = 'login';
-function openModal() { document.getElementById('modalOverlay').classList.add('show'); document.body.style.overflow = 'hidden'; }
-function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); document.body.style.overflow = ''; document.getElementById('errorMsg').classList.remove('show'); }
-function switchTab(mode) {
-  authMode = mode;
-  const lt = document.getElementById('loginTab'), rt = document.getElementById('registerTab');
-  const t = document.getElementById('modalTitle'), s = document.getElementById('modalSub'), b = document.getElementById('submitBtn');
-  const ft = document.getElementById('footerText'), fl = document.querySelector('.modal-footer a');
-  const rf = document.querySelectorAll('.register-fields'), fr = document.getElementById('formRow');
-  if (mode === 'login') { lt.classList.add('active'); rt.classList.remove('active'); t.textContent='欢迎回来'; s.textContent='登录以同步你的工具收藏'; b.textContent='登 录'; ft.textContent='还没有账号？'; fl.textContent='立即注册'; fl.onclick=()=>switchTab('register'); fr.style.display='flex'; rf.forEach(f=>f.classList.remove('show')); }
-  else { rt.classList.add('active'); lt.classList.remove('active'); t.textContent='创建账号'; s.textContent='注册后可收藏常用工具'; b.textContent='注 册'; ft.textContent='已有账号？'; fl.textContent='去登录'; fl.onclick=()=>switchTab('login'); fr.style.display='none'; rf.forEach(f=>f.classList.add('show')); }
-  document.getElementById('errorMsg').classList.remove('show');
-}
-function handleAuth(e) {
-  e.preventDefault();
-  const email = document.getElementById('emailInput').value.trim(), password = document.getElementById('passwordInput').value;
-  if (!email || !password) { showError('请填写完整信息'); return; }
-  if (password.length < 6) { showError('密码至少 6 位'); return; }
-  if (authMode === 'register') {
-    const regName = document.getElementById('regName').value.trim(), regConfirm = document.getElementById('regConfirm').value;
-    if (!regName) { showError('请输入用户名'); return; }
-    if (password !== regConfirm) { showError('两次密码不一致'); return; }
-    const users = JSON.parse(localStorage.getItem('toolbox_users') || '{}');
-    if (users[email]) { showError('该邮箱已注册'); return; }
-    users[email] = { name: regName, email, password };
-    localStorage.setItem('toolbox_users', JSON.stringify(users));
-    showToast('注册成功，已自动登录'); loginUser(regName);
-  } else {
-    const users = JSON.parse(localStorage.getItem('toolbox_users') || '{}');
-    const user = users[email] || users[email.toLowerCase()];
-    if (!user || user.password !== password) {
-      if (email === 'demo' && password === '123456') { showToast('登录成功'); loginUser('体验用户'); }
-      else { showError('邮箱或密码错误（试试 demo / 123456）'); }
-    } else { showToast('登录成功'); loginUser(user.name); }
-  }
-}
-function loginUser(name) {
-  currentUser = name;
-  document.getElementById('loginBtn').style.display = 'none';
-  document.getElementById('userMenu').classList.add('show');
-  document.getElementById('userName').textContent = name;
-  document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
-  localStorage.setItem('toolbox_user', name);
-  closeModal(); document.getElementById('authForm').reset();
-}
-function logout() {
-  currentUser = null;
-  document.getElementById('loginBtn').style.display = 'flex';
-  document.getElementById('userMenu').classList.remove('show');
-  localStorage.removeItem('toolbox_user'); showToast('已退出登录');
-}
-function socialLogin(p) { showToast(`正在通过 ${p} 登录...`); setTimeout(()=>loginUser(p+'用户'), 800); }
-function showError(msg) { const el = document.getElementById('errorMsg'); el.textContent = msg; el.classList.add('show'); }
-
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
@@ -382,8 +329,6 @@ function init() {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('themeIcon').innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
   }
-  const savedUser = localStorage.getItem('toolbox_user');
-  if (savedUser) loginUser(savedUser);
   setupImageDrop();
 }
 document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
