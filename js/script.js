@@ -12,6 +12,7 @@ const tools = [
   { icon:'🕤', name:'时间戳转换', desc:'秒/毫秒互转 · 多时区切换', tool:'timestamp' },
   { icon:'🔐', name:'字符串加解密', desc:'Hash 加密 · Base64 编解码 · URL 编解码', tool:'crypto' },
   { icon:'{}', name:'JSON 格式化', desc:'语法高亮 · 格式化/压缩 · JSONPath 查询', tool:'json' },
+  { icon:'🐸', name:'合成大奶蛙', desc:'合成大奶娃 · 拖动投放 · 越合越大', tool:'bignaiwa' },
 ];
 
 // ===== Tool Templates（Base64/图片信息已移至独立页面）=====
@@ -145,6 +146,12 @@ function openTool(toolId) {
   // 字符串加解密已拆分为独立页面
   if (toolId === 'crypto') {
     window.location.href = 'crypto.html';
+    return;
+  }
+
+  // 合成大奶蛙游戏已拆分为独立页面
+  if (toolId === 'bignaiwa') {
+    window.location.href = 'bignaiwa.html';
     return;
   }
 

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fff3e0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="合成大奶蛙">
+<meta name="description" content="合成大奶蛙 · 纯前端小游戏：拖动瞄准、松手投放，相同的撞在一起合成更大的一只。移植自开源项目 github.com/kaerkaifei/BigNaiWa，原作者版权归原作者所有。">
+<title>合成大奶蛙 · 工具箱</title>
+<link rel="stylesheet" href="games/bignaiwa/style.css">
+<style>
+  /* 工具箱顶部导航条（独立样式，不依赖工具箱主 style.css，避免与游戏样式冲突） */
+  html, body { padding-top: 56px; }
+  .bnw-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 16px;
+    background: rgba(255, 247, 236, 0.92);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(74, 51, 37, 0.10);
+    box-shadow: 0 2px 8px rgba(126, 84, 44, 0.06);
+  }
+  .bnw-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #4a3325; text-decoration: none; font-size: 14px;
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    transition: background .15s ease;
+  }
+  .bnw-back:hover { background: rgba(74, 51, 37, 0.08); }
+  .bnw-brand {
+    display: flex; align-items: center; gap: 6px;
+    color: #4a3325; font-size: 14px; font-weight: 600;
+  }
+  .bnw-brand .ico { font-size: 16px; }
+  /* 致敬原作者：赞助弹窗里用链接替代缺失的收款码图片 */
+  .sponsor-link {
+    display: block; margin: 10px auto; padding: 10px 14px;
+    max-width: 280px; box-sizing: border-box;
+    background: #fff; border: 1px solid rgba(74, 51, 37, 0.12);
+    border-radius: 12px; color: #4a3325; text-decoration: none;
+    font-size: 13px; line-height: 1.5; word-break: break-all;
+    box-shadow: 0 4px 12px rgba(140, 96, 56, .10);
+  }
+  .sponsor-link:hover { background: #fffaf3; }
+</style>
+</head>
+<body>
+
+<header class="bnw-header">
+  <a class="bnw-back" href="index.html">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    返回首页
+  </a>
+  <div class="bnw-brand"><span class="ico">🎮</span><span>工具箱</span></div>
+</header>
+
+<main class="app">
+
+  <!-- ===== 游戏区 ===== -->
+  <section class="stage" id="stage">
+    <div class="board-viewport" id="boardViewport">
+      <canvas id="game" aria-label="合成大奶蛙游戏区域"></canvas>
+    </div>
+
+    <div class="size-tip" id="sizeTip" hidden>
+      <span>💡 「自动释放」可以自动连投铺场<span class="only-mobile">；点「棋盘尺寸」可调宽度、井深和页面缩放</span><span class="only-desktop">；「棋盘大小」能加大 / 缩小棋盘和页面（最小为原版 420 × 700）</span></span>
+      <button class="link-btn" id="sizeTipOk" type="button">知道了</button>
+    </div>
+
+    <div class="revive-chip" id="reviveBadge" hidden>
+      <span class="revive-chip-ico" aria-hidden="true">🪙</span><span id="reviveCount">×0</span>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="dialog">
+
+        <!-- ===== 越线第一屏：有复活币时才出现 ===== -->
+        <div class="revive-ask" id="revivePrompt" hidden>
+          <div class="dialog-emoji">😵</div>
+          <h2>还能再救一下</h2>
+          <p class="dialog-score">本局得分 <strong id="reviveScore">0</strong></p>
+          <p class="revive-hint">清掉警戒线以上的水果，接着玩</p>
+          <div class="dialog-actions">
+            <button class="btn" id="giveUpBtn" type="button">不了，结束吧</button>
+            <button class="btn btn-revive" id="reviveBtn" type="button">🪙 用一枚复活币</button>
+          </div>
+          <p class="dialog-hint" id="reviveLeft">还剩 1 枚</p>
+        </div>
+
+        <!-- ===== 第二屏：正式结算 ===== -->
+        <div id="overPanel">
+          <div class="dialog-emoji">🍉</div>
+          <h2 id="overTitle">游戏结束</h2>
+          <p class="dialog-score">本局得分 <strong id="finalScore">0</strong></p>
+          <p class="dialog-best">最高分 <span id="finalBest">0</span></p>
+
+          <div class="submit-box" id="submitBox">
+            <p class="submit-msg" id="submitMsg">正在结算…</p>
+            <p class="my-name">昵称：<strong id="myNameLabel">默认用户</strong>
+              <button class="link-btn" id="editNameBtn" type="button">改昵称</button>
+            </p>
+            <button class="btn" id="submitBtn" type="button" hidden>重试提交</button>
+          </div>
+
+          <div class="dialog-actions">
+            <button class="btn" id="boardBtn2" type="button">🏆 排行榜</button>
+            <button class="btn btn-primary" id="restartBtn" type="button">再来一局</button>
+            <button class="btn btn-sponsor btn-wide" id="sponsorBtn" type="button">🌶️ 致敬原作者</button>
+          </div>
+          <p class="dialog-hint">按 R 键也可重新开始</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 侧边面板 ===== -->
+  <aside class="panel">
+
+    <header class="panel-head">
+      <h1>合成大奶蛙</h1>
+      <p class="subtitle">相同的撞在一起，越合越大</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">分数</span>
+        <strong class="stat-value" id="score">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">最高分</span>
+        <strong class="stat-value stat-best" id="best">0</strong>
+      </div>
+    </div>
+
+    <div class="next-box">
+      <span class="box-label">下一个</span>
+      <canvas id="next" width="160" height="160" aria-label="下一个"></canvas>
+    </div>
+
+    <div class="chain-box">
+      <span class="box-label">合成表</span>
+      <canvas id="chain" width="680" height="112" aria-label="合成顺序"></canvas>
+      <p class="chain-note">✨ 两个神奶蛙撞在一起会一起炸掉，换 <strong>500 分</strong> + <strong>一枚复活币</strong></p>
+    </div>
+
+    <div class="size-box">
+      <span class="box-label" id="sizeBoxLabel">棋盘尺寸</span>
+      <div class="size-rows">
+        <div class="size-row size-row-w">
+          <span class="size-k">宽</span>
+          <button class="btn size-btn" id="wMinus" type="button" title="宽度 −60（最小 420 = 原版）">−</button>
+          <button class="btn size-btn" id="wPlus" type="button" title="宽度 +60（最大 = 窗口拉满）">＋</button>
+        </div>
+        <div class="size-row">
+          <span class="size-k">高</span>
+          <button class="btn size-btn" id="hMinus" type="button" title="高度 −100（最小 700 = 原版）">−</button>
+          <button class="btn size-btn" id="hPlus" type="button" title="高度 +100（最大 3000）">＋</button>
+        </div>
+        <div class="size-row">
+          <span class="size-k">缩放</span>
+          <button class="btn size-btn" id="zoomOut" type="button" title="整个页面缩小 10%">−</button>
+          <button class="btn size-btn" id="zoomIn" type="button" title="整个页面放大 10%">＋</button>
+        </div>
+      </div>
+      <span class="size-val" id="sizeVal"></span>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-wide" id="boardBtn" type="button">
+        <span class="ico">🏆</span><span class="lbl">排行榜</span>
+      </button>
+      <button class="btn" id="autoBtn" type="button" aria-pressed="false"
+              title="开启后按所选间隔，在当前瞄准位置自动投放">
+        <span class="ico">⏬</span><span class="lbl">自动释放</span>
+      </button>
+      <select class="btn auto-speed" id="autoSpeed" aria-label="自动释放速度" title="自动释放间隔（开启自动释放后每隔这段时间投一颗）">
+        <option value="2000">2 秒</option>
+        <option value="1000" selected>1 秒</option>
+        <option value="600">0.6 秒</option>
+        <option value="400">0.4 秒</option>
+        <option value="1">0.001 秒</option>
+      </select>
+      <button class="btn" id="soundBtn" type="button" aria-pressed="true">
+        <span class="ico">🔊</span><span class="lbl">音效开</span>
+      </button>
+      <button class="btn btn-primary" id="resetBtn" type="button" title="重新开始">
+        <span class="ico">↻</span><span class="lbl">重开</span>
+      </button>
+    </div>
+
+    <p class="tips">
+      鼠标：移动瞄准、点击投放；触屏：点哪投哪，拖动平移视野。<br>
+      ← → 微调位置，空格投放，R 重开。<br>
+      「自动释放」开启后，按所选间隔在 X 轴随机位置自动投放，铺满整个棋盘宽度。<br>
+      棋盘比屏幕高：滚轮 / 触屏上下滑动查看井底，投放后会自动回到顶部。<br>
+      每 <strong>2000 分</strong>攒一枚<strong>复活币</strong>，只在本局有效。
+    </p>
+
+  </aside>
+
+</main>
+
+<!-- ===== 排行榜弹窗 ===== -->
+<div class="modal" id="boardModal" aria-hidden="true" role="dialog" aria-label="排行榜">
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>🏆 最近高手榜</h2>
+      <button class="icon-btn" id="boardClose" type="button" aria-label="关闭">✕</button>
+    </header>
+    <div class="nick-row">
+      <label class="nick-label" for="nickInput">我的昵称</label>
+      <input class="nick-input" id="nickInput" type="text" maxlength="12"
+             placeholder="默认用户" autocomplete="nickname" enterkeyhint="done">
+    </div>
+    <div class="board-list" id="boardList"></div>
+    <footer class="modal-foot">
+      <span class="board-note">排行榜由原版作者维护，本移植版可能无法提交，不影响游戏本身</span>
+      <button class="btn" id="boardRefresh" type="button">刷新</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ===== 致敬原作者弹窗 ===== -->
+<div class="modal" id="sponsorModal" aria-hidden="true" role="dialog" aria-label="致敬原作者">
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>🌶️ 致敬原作者</h2>
+      <button class="icon-btn" id="sponsorClose" type="button" aria-label="关闭">✕</button>
+    </header>
+    <div class="sponsor-body">
+      <p class="sponsor-note">本游戏移植自开源项目「合成大奶娃 / BigNaiWa」。<br>
+        游戏版权归原作者所有，本站仅做整合展示。</p>
+      <a class="sponsor-link" href="https://github.com/kaerkaifei/BigNaiWa" target="_blank" rel="noopener">
+        📦 改版仓库：github.com/kaerkaifei/BigNaiWa
+      </a>
+      <a class="sponsor-link" href="https://yhsome.github.io/BigNaiWa/" target="_blank" rel="noopener">
+        🐸 原作者原版：yhsome.github.io/BigNaiWa
+      </a>
+      <p class="sponsor-hint">原作者 ❤️ yhsome · 改版作者 kaerkaifei · 完全免费 · 无广告</p>
+    </div>
+    <footer class="modal-foot">
+      <span class="board-note">谢谢原作者做出的好游戏 ❤️</span>
+      <button class="btn" id="sponsorOk" type="button">关闭</button>
+    </footer>
+  </div>
+</div>
+
+<!-- 碰撞形状数据（按贴图轮廓自动生成，由 tools/build_parts.py 产出） -->
+<script src="games/bignaiwa/assets/fruits/parts.js"></script>
+<!-- 极模糊占位图（内联 data URL，由 tools/make_blur.py 产出）：贴图没到位时先画它 -->
+<script src="games/bignaiwa/assets/fruits/blur.js"></script>
+<script src="games/bignaiwa/game.js"></script>
+<!-- 排行榜 -->
+<script src="games/bignaiwa/leaderboard.min.js"></script>
+<!-- 致敬原作者弹窗 -->
+<script src="games/bignaiwa/sponsor.js"></script>
+</body>
+</html>
